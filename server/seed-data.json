@@ -1,0 +1,251 @@
+{
+  "thesis": {
+    "title": "Wave 3: The AI Infrastructure Supply-Chain Bottleneck",
+    "author": "Forward Capital",
+    "summary": "AI infrastructure demand is outrunning the physical supply chain. Wave 1 winners (NVIDIA, OpenAI, Anthropic) and Wave 2 winners (hyperscalers building AI capacity, chip/memory/networking suppliers) are increasingly priced in. Wave 3 is the next bottleneck: advanced material processing and other 'hidden' supply-chain constraints (power, cooling, strategic materials) that the market has not yet fully recognized. Forward Capital expects the market to recognize the advanced-material-processing bottleneck in H2 2026.",
+    "prediction": "Market recognizes the 'advanced material processing' bottleneck in H2 2026, re-rating companies exposed to strategic materials, power, and networking ahead of broad consensus.",
+    "signal_types_called_for": [
+      "X/Twitter posts",
+      "Web traffic / product usage signals",
+      "Government contracts, grants, and policy actions",
+      "Supplier / customer partnership announcements",
+      "AI-lab and hyperscaler mentions",
+      "Patent filings"
+    ],
+    "segments": [
+      {
+        "name": "Chips",
+        "note": "AI accelerators and general-purpose semiconductors that power AI training/inference.",
+        "companies": ["NVDA", "AMD", "INTC"]
+      },
+      {
+        "name": "Strategic materials",
+        "note": "Explicitly named in the thesis as the 'hidden' / not-yet-priced-in segment the H2 2026 prediction is betting on. The thesis does NOT name specific companies here — this is a real research gap, not an oversight. The app must surface this as 'Segment needs research' rather than inventing placeholder companies.",
+        "companies": []
+      },
+      {
+        "name": "Power",
+        "note": "Power generation and cooling infrastructure for AI data centers.",
+        "companies": ["VRT", "BE", "GEV"]
+      },
+      {
+        "name": "Networking",
+        "note": "Interconnect, ASIC, and networking silicon for AI clusters.",
+        "companies": ["AVGO", "MRVL"]
+      }
+    ],
+    "adjacent_companies_not_in_first_watchlist": {
+      "ai_winners_wave1": ["GOOGL/GOOG (Google Cloud)", "AMZN (AWS)", "MSFT (Azure)"],
+      "memory_storage_wave2": ["SNDK", "MU"],
+      "note": "Hyperscalers and memory/storage makers are named in the thesis narrative as Wave 1/2 context but sit outside the explicit 'First Watchlist' segments (Chips, Strategic materials, Power, Networking). Included in the seed watchlist for completeness since the thesis discusses them directly."
+    }
+  },
+  "watchlist_companies": [
+    {
+      "ticker": "NVDA", "name": "NVIDIA Corporation", "segment": "Chips",
+      "sector": "Technology", "industry": "Semiconductors", "ceo": "Jen-Hsun Huang", "employees": 42000,
+      "website": "https://www.nvidia.com", "ipo_date": "1999-01-22",
+      "quote": {"price": 203.28, "change": 0.47, "changesPercentage": 0.23, "marketCap": 4923644880000, "pe": 34.81, "volume": 88271631, "yearLow": 164.07, "yearHigh": 236.54, "as_of": "2026-07-20T20:00:01Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 31, "bullish_pct": 96.8, "neutral_pct": 3.2, "bearish_pct": 0, "avg_price_target": 309.45, "median_price_target": 300, "high_price_target": 500, "low_price_target": 215},
+      "recent_analyst_actions": [
+        {"date": "2026-07-14", "firm": "Keybanc", "analyst": "John Vinh", "action": "Maintains", "rating": "Overweight", "price_target": 330, "prior_target": 310, "sentiment": "bullish"},
+        {"date": "2026-06-01", "firm": "DA Davidson", "analyst": "Gil Luria", "action": "Maintains", "rating": "Buy", "price_target": 300, "prior_target": 300, "sentiment": "bullish"},
+        {"date": "2025-11-20", "firm": "Deutsche Bank", "analyst": "Ross Seymore", "action": "Maintains", "rating": "Hold", "price_target": 215, "prior_target": 180, "sentiment": "neutral"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-07-01", "name": "COXE TENCH", "type": "G-GIFT", "shares": 500000, "value": 0},
+        {"date": "2026-06-25", "name": "STEVENS MARK A", "type": "A-AWARD", "shares": 1211, "value": 0},
+        {"date": "2026-03-20", "name": "KRESS COLETTE", "type": "S-SALE", "shares": 2339, "price": 172.71, "value": 403968.69},
+        {"date": "2026-02-04", "name": "KRESS COLETTE", "type": "S-SALE", "shares": 1424, "price": 177.50, "value": 252760}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "GOOG", "name": "Alphabet Inc.", "segment": "Hyperscaler (context, not First Watchlist)",
+      "sector": "Communication Services", "industry": "Internet Content & Information", "ceo": "Sundar Pichai", "employees": 190820,
+      "website": "https://abc.xyz", "ipo_date": "2004-08-19",
+      "quote": {"price": 351.37, "change": 5.25, "changesPercentage": 1.52, "marketCap": 4255132111063, "pe": 26.80, "volume": 13160757, "yearLow": 187.05, "yearHigh": 404.47, "as_of": "2026-07-20T20:00:00Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 7, "bullish_pct": 85.7, "neutral_pct": 14.3, "bearish_pct": 0, "avg_price_target": 425.43, "median_price_target": 445, "high_price_target": 475, "low_price_target": 348},
+      "recent_analyst_actions": [
+        {"date": "2026-06-09", "firm": "TD Cowen", "analyst": "John Blackledge", "action": "Maintains", "rating": "Buy", "price_target": 475, "prior_target": 450, "sentiment": "bullish"},
+        {"date": "2026-04-30", "firm": "JP Morgan", "analyst": "Rajat Gupta", "action": "Maintains", "rating": "Overweight", "price_target": 460, "prior_target": 395, "sentiment": "bullish"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-07-01", "name": "CHAVEZ R. MARTIN", "type": "A-AWARD", "shares": 980, "value": 0},
+        {"date": "2026-04-25", "name": "ASHKENAZI ANAT", "type": "C-CONVERSION", "shares": 7051, "value": 0}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "AMZN", "name": "Amazon.com, Inc.", "segment": "Hyperscaler (context, not First Watchlist)",
+      "sector": "Consumer Cyclical", "industry": "Specialty Retail", "ceo": "Andrew R. Jassy", "employees": 1576000,
+      "website": "https://www.amazon.com", "ipo_date": "1997-05-15",
+      "quote": {"price": 249.99, "change": 2.76, "changesPercentage": 1.12, "marketCap": 2689167429000, "pe": 29.90, "volume": 30603411, "yearLow": 196, "yearHigh": 278.56, "as_of": "2026-07-20T20:00:01Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 35, "bullish_pct": 94.3, "neutral_pct": 5.7, "bearish_pct": 0, "avg_price_target": 312.74, "median_price_target": 319, "high_price_target": 370, "low_price_target": 175},
+      "recent_analyst_actions": [
+        {"date": "2026-07-16", "firm": "Keybanc", "analyst": "Justin Patterson", "action": "Maintains", "rating": "Overweight", "price_target": 335, "prior_target": 330, "sentiment": "bullish"},
+        {"date": "2026-07-08", "firm": "TD Cowen", "analyst": "John Blackledge", "action": "Maintains", "rating": "Buy", "price_target": 340, "prior_target": 350, "sentiment": "bullish"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-07-01", "name": "HERRINGTON DOUGLAS J", "type": "S-SALE", "shares": 1000, "price": 239.77, "value": 239770},
+        {"date": "2026-05-21", "name": "JASSY ANDREW R", "type": "S-SALE", "shares": 5206, "price": 261.95, "value": 1363711.70}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "MSFT", "name": "Microsoft Corporation", "segment": "Hyperscaler (context, not First Watchlist)",
+      "sector": "Technology", "industry": "Software - Infrastructure", "ceo": "Satya Nadella", "employees": 228000,
+      "website": "https://www.microsoft.com", "ipo_date": "1986-03-13",
+      "quote": {"price": 402.29, "change": 8.47, "changesPercentage": 2.15, "marketCap": 2988383104700, "pe": 24.85, "volume": 27729614, "yearLow": 349.20, "yearHigh": 555.45, "as_of": "2026-07-20T20:00:01Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 32, "bullish_pct": 93.8, "neutral_pct": 6.2, "bearish_pct": 0, "avg_price_target": 552.81, "median_price_target": 547.5, "high_price_target": 680, "low_price_target": 400},
+      "recent_analyst_actions": [
+        {"date": "2026-07-15", "firm": "Evercore ISI Group", "analyst": "Kirk Materne", "action": "Maintains", "rating": "Outperform", "price_target": 525, "prior_target": 510, "sentiment": "bullish"},
+        {"date": "2026-02-05", "firm": "Stifel", "analyst": "Brad Reback", "action": "Downgrades", "rating": "Hold", "price_target": 392, "prior_target": 540, "sentiment": "neutral"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-05-14", "name": "COLEMAN AMY", "type": "S-SALE", "shares": 1262.31, "price": 411.34, "value": 519238.60}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "AMD", "name": "Advanced Micro Devices, Inc.", "segment": "Chips",
+      "sector": "Technology", "industry": "Semiconductors", "ceo": "Lisa T. Su", "employees": 31000,
+      "website": "https://www.amd.com", "ipo_date": "1972-09-07",
+      "quote": {"price": 503.57, "change": 7.81, "changesPercentage": 1.58, "marketCap": 821121242000, "pe": 109.95, "volume": 23212955, "yearLow": 149.22, "yearHigh": 584.73, "as_of": "2026-07-20T20:00:01Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 32, "bullish_pct": 81.2, "neutral_pct": 18.8, "bearish_pct": 0, "avg_price_target": 520.22, "median_price_target": 500, "high_price_target": 725, "low_price_target": 300},
+      "recent_analyst_actions": [
+        {"date": "2026-07-14", "firm": "Keybanc", "analyst": "John Vinh", "action": "Maintains", "rating": "Overweight", "price_target": 725, "prior_target": 530, "sentiment": "bullish"},
+        {"date": "2026-05-04", "firm": "HSBC", "analyst": "Frank Lee", "action": "Downgrades", "rating": "Hold", "price_target": 340, "prior_target": 335, "sentiment": "neutral"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-07-15", "name": "PAPERMASTER MARK D", "type": "S-SALE", "shares": 6000, "price": 556.43, "value": 3338580.00},
+        {"date": "2026-02-11", "name": "SU LISA T", "type": "S-SALE", "shares": 14005, "price": 216.89, "value": 3037544.45}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "INTC", "name": "Intel Corp.", "segment": "Chips",
+      "sector": "Technology", "industry": "Semiconductors", "ceo": "Lip-Bu Tan", "employees": 85100,
+      "website": "https://www.intel.com", "ipo_date": "1980-03-17",
+      "quote": {"price": 97.06, "change": 2.02, "changesPercentage": 2.13, "marketCap": 487823560000, "pe": 170.28, "volume": 89273530, "yearLow": 18.97, "yearHigh": 142.35, "as_of": "2026-07-20T20:00:01Z"},
+      "analyst_consensus": {"rating": "hold", "total_ratings": 25, "bullish_pct": 24, "neutral_pct": 68, "bearish_pct": 8, "avg_price_target": 93.64, "median_price_target": 100, "high_price_target": 160, "low_price_target": 30, "note": "Average price target ($93.64) is BELOW the current price ($97.06) and consensus is Hold, not Buy — this is a natural contradicting-evidence data point for a bullish 'Chips' thesis leg and should surface in the evidence board as counter-evidence, not be filtered out."},
+      "recent_analyst_actions": [
+        {"date": "2026-07-20", "firm": "Morgan Stanley", "analyst": "Joseph Moore", "action": "Maintains", "rating": "Equal-Weight", "price_target": 75, "prior_target": 73, "sentiment": "neutral"},
+        {"date": "2025-09-19", "firm": "Citigroup", "analyst": "Christopher Danely", "action": "Downgrades", "rating": "Sell", "price_target": 29, "prior_target": 24, "sentiment": "bearish"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-06-01", "name": "ZINSNER DAVID", "type": "F-INKIND", "shares": 18353, "price": 109.82, "value": 2015526.46},
+        {"date": "2026-05-01", "name": "MILLER BOISE APRIL", "type": "S-SALE", "shares": 40256, "price": 99.53, "value": 4006679.68}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "SNDK", "name": "Sandisk Corporation", "segment": "Memory/Storage (context, not First Watchlist)",
+      "sector": "Technology", "industry": "Computer Hardware", "ceo": "David V. Goeckeler", "employees": 11000,
+      "website": "http://www.sandisk.com", "ipo_date": "1995-11-08",
+      "quote": {"price": 1390.95, "change": 36.13, "changesPercentage": 2.67, "marketCap": 205985437763, "pe": 42.63, "volume": 12404763, "yearLow": 40.10, "yearHigh": 2354.39, "as_of": "2026-07-20T20:00:00Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 15, "bullish_pct": 86.7, "neutral_pct": 13.3, "bearish_pct": 0, "avg_price_target": 1806.67, "median_price_target": 1750, "high_price_target": 3250, "low_price_target": 450},
+      "recent_analyst_actions": [
+        {"date": "2026-07-01", "firm": "B of A Securities", "analyst": "Wamsi Mohan", "action": "Maintains", "rating": "Buy", "price_target": 2500, "prior_target": 2100, "sentiment": "bullish"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-07-01", "name": "SHEK BERNARD", "type": "S-SALE", "shares": 600, "price": 2088, "value": 1252800}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "MU", "name": "Micron Technology, Inc.", "segment": "Memory/Storage (context, not First Watchlist)",
+      "sector": "Technology", "industry": "Semiconductors", "ceo": "Sanjay Mehrotra", "employees": 53000,
+      "website": "https://www.micron.com", "ipo_date": "1984-06-01",
+      "quote": {"price": 865.46, "change": 16.51, "changesPercentage": 1.94, "marketCap": 977441869400, "pe": 19.18, "volume": 37344218, "yearLow": 103.38, "yearHigh": 1255, "as_of": "2026-07-20T20:00:01Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 26, "bullish_pct": 96.2, "neutral_pct": 3.8, "bearish_pct": 0, "avg_price_target": 1387.88, "median_price_target": 1500, "high_price_target": 2000, "low_price_target": 400},
+      "recent_analyst_actions": [
+        {"date": "2026-07-14", "firm": "Keybanc", "analyst": "John Vinh", "action": "Maintains", "rating": "Overweight", "price_target": 1750, "prior_target": 1600, "sentiment": "bullish"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-05-29", "name": "MEHROTRA SANJAY", "type": "S-SALE", "shares": 3113, "price": 962.23, "value": 2995421.99}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "AVGO", "name": "Broadcom Inc.", "segment": "Networking",
+      "sector": "Technology", "industry": "Semiconductors", "ceo": "Hock E. Tan", "employees": 33000,
+      "website": "https://www.broadcom.com", "ipo_date": "2009-08-06",
+      "quote": {"price": 378.16, "change": 7.33, "changesPercentage": 1.98, "marketCap": 1799126452800, "pe": 46.51, "volume": 14214613, "yearLow": 273, "yearHigh": 495, "as_of": "2026-07-20T20:00:01Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 25, "bullish_pct": 92, "neutral_pct": 8, "bearish_pct": 0, "avg_price_target": 504.16, "median_price_target": 515, "high_price_target": 582, "low_price_target": 375},
+      "recent_analyst_actions": [
+        {"date": "2026-06-04", "firm": "B of A Securities", "analyst": "Vivek Arya", "action": "Maintains", "rating": "Buy", "price_target": 530, "prior_target": 450, "sentiment": "bullish"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-07-10", "name": "BRAZEAL MARK DAVID", "type": "S-SALE", "shares": 25000, "price": 401.33, "value": 10033250},
+        {"date": "2026-03-25", "name": "SAMUELI HENRY", "type": "S-SALE", "shares": 92385, "price": 318.33, "value": 29408917.05}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "MRVL", "name": "Marvell Technology, Inc.", "segment": "Networking",
+      "sector": "Technology", "industry": "Semiconductors", "ceo": "Matthew J. Murphy", "employees": 7480,
+      "website": "https://www.marvell.com", "ipo_date": "2000-06-27",
+      "quote": {"price": 194.94, "change": 6.26, "changesPercentage": 3.32, "marketCap": 170721824040, "pe": 64.34, "volume": 24530203, "yearLow": 61.44, "yearHigh": 329.88, "as_of": "2026-07-20T20:00:00Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 26, "bullish_pct": 84.6, "neutral_pct": 15.4, "bearish_pct": 0, "avg_price_target": 253.04, "median_price_target": 245, "high_price_target": 400, "low_price_target": 90},
+      "recent_analyst_actions": [
+        {"date": "2026-07-14", "firm": "Keybanc", "analyst": "John Vinh", "action": "Maintains", "rating": "Overweight", "price_target": 400, "prior_target": 385, "sentiment": "bullish"},
+        {"date": "2025-10-01", "firm": "TD Cowen", "analyst": "Joshua Buchalter", "action": "Downgrades", "rating": "Hold", "price_target": 85, "prior_target": 90, "sentiment": "neutral"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-05-15", "name": "KOOPMANS CHRIS", "type": "F-INKIND", "shares": 27882, "price": 176.89, "value": 4932046.98}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "VRT", "name": "Vertiv Holdings Co", "segment": "Power",
+      "sector": "Industrials", "industry": "Electrical Equipment & Parts", "ceo": "Giordano Albertazzi", "employees": 34000,
+      "website": "https://www.vertiv.com", "ipo_date": "2018-08-02",
+      "quote": {"price": 291.67, "change": 2.11, "changesPercentage": 0.73, "marketCap": 112033018363, "pe": 61.79, "volume": 3763088, "yearLow": 118.70, "yearHigh": 379.94, "as_of": "2026-07-20T20:00:03Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 14, "bullish_pct": 92.9, "neutral_pct": 7.1, "bearish_pct": 0, "avg_price_target": 343.29, "median_price_target": 351.5, "high_price_target": 440, "low_price_target": 195},
+      "recent_analyst_actions": [
+        {"date": "2026-07-16", "firm": "RBC Capital", "analyst": "Deane Dray", "action": "Maintains", "rating": "Outperform", "price_target": 418, "prior_target": 435, "sentiment": "bullish"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-02-26", "name": "REINEMUND STEVEN", "type": "S-SALE", "shares": 10801.70, "price": 252.42, "value": 2726565.11}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "BE", "name": "Bloom Energy Corporation", "segment": "Power",
+      "sector": "Industrials", "industry": "Electrical Equipment & Parts", "ceo": "K. R. Sridhar", "employees": 2214,
+      "website": "https://www.bloomenergy.com", "ipo_date": "2018-07-25",
+      "quote": {"price": 197.06, "change": -17.90, "changesPercentage": -8.33, "marketCap": 56052508628, "pe": 172.86, "volume": 17174229, "yearLow": 24.39, "yearHigh": 351.28, "as_of": "2026-07-20T20:00:03Z", "note": "-8.33% single-session move on the fetch date — flagged as a raw data / detected-signal event worth investigating, not yet explained by any signal in this seed set."},
+      "analyst_consensus": {"rating": "buy", "total_ratings": 19, "bullish_pct": 47.4, "neutral_pct": 47.4, "bearish_pct": 5.3, "avg_price_target": 233.42, "median_price_target": 267, "high_price_target": 350, "low_price_target": 39, "note": "Analyst sentiment is split roughly 50/50 bullish/neutral with one bearish rating — a genuinely contested name, useful as a real contradicting-evidence example for the Power segment leg of the thesis."},
+      "recent_analyst_actions": [
+        {"date": "2026-07-20", "firm": "TD Cowen", "analyst": "Jeff Osborne", "action": "Reiterates", "rating": "Hold", "price_target": 235, "prior_target": 235, "sentiment": "neutral"},
+        {"date": "2026-02-06", "firm": "Wells Fargo", "analyst": "Michael Blum", "action": "Maintains", "rating": "Equal-Weight", "price_target": 130, "prior_target": 95, "sentiment": "neutral"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-07-01", "name": "JOSHI AMAN", "type": "S-SALE", "shares": 8343, "price": 300.37, "value": 2505986.91},
+        {"date": "2026-04-14", "name": "SODERBERG SHAWN MARIE", "type": "S-SALE", "shares": 30000, "price": 204.23, "value": 6126900}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    },
+    {
+      "ticker": "GEV", "name": "GE Vernova Inc.", "segment": "Power",
+      "sector": "Industrials", "industry": "Renewable Utilities", "ceo": "Scott L. Strazik", "employees": 75000,
+      "website": "https://www.gevernova.com", "ipo_date": "2024-03-27",
+      "quote": {"price": 1079.18, "change": 21.34, "changesPercentage": 2.02, "marketCap": 289997249600, "pe": 57.19, "volume": 2265324, "yearLow": 530.16, "yearHigh": 1195.94, "as_of": "2026-07-20T20:00:02Z"},
+      "analyst_consensus": {"rating": "strong_buy", "total_ratings": 21, "bullish_pct": 85.7, "neutral_pct": 14.3, "bearish_pct": 0, "avg_price_target": 1071.48, "median_price_target": 1110, "high_price_target": 1400, "low_price_target": 580, "note": "Average price target ($1,071.48) sits just below the current price ($1,079.18) despite an otherwise bullish consensus — a mild 'priced-in already' signal worth flagging as partial counter-evidence to fresh upside."},
+      "recent_analyst_actions": [
+        {"date": "2026-06-11", "firm": "Jefferies", "analyst": "Julien Dumoulin-Smith", "action": "Maintains", "rating": "Buy", "price_target": 1210, "prior_target": 1350, "sentiment": "bullish"},
+        {"date": "2025-09-12", "firm": "Jefferies", "analyst": "Julien Dumoulin-Smith", "action": "Maintains", "rating": "Hold", "price_target": 668, "prior_target": 658, "sentiment": "neutral"}
+      ],
+      "recent_insider_transactions": [
+        {"date": "2026-06-01", "name": "ABATE VICTOR", "type": "S-SALE", "shares": 4819, "price": 948.08, "value": 4568797.52}
+      ],
+      "source": "Perplexity finance connector (live quotes, analyst research, insider transactions), fetched 2026-07-20"
+    }
+  ],
+  "data_fetch_metadata": {
+    "fetched_at": "2026-07-20T21:02:45Z",
+    "provider": "Perplexity finance connector (finance_quotes, finance_company_profile, finance_insider_transactions, finance_analyst_research)",
+    "note": "All numeric values above came from live tool calls in this session, not invented. Use these as the initial seed snapshot; the app's Source Management page should let the user re-sync live via the same connector at any time."
+  }
+}
