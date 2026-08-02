@@ -546,3 +546,41 @@ export const precommitments = pgTable(
     companyIdx: index("precommitments_company_idx").on(t.companyId, t.createdAt),
   }),
 );
+
+/* ------------------------------------------------------------------ */
+/* digests — five things, and what got cut                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * One row per week. Kept rather than regenerated because the interesting
+ * question later is not "what mattered this week" but "what did we think
+ * mattered, and were we right" — and that only works if the ranking is
+ * preserved with its reasoning at the time.
+ *
+ * `suppressed` is stored deliberately. A digest that silently drops things
+ * reads as "nothing else happened", which is a lie; recording the count is
+ * what lets someone later ask whether the cap is set right.
+ */
+export const digests = pgTable(
+  "digests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** Sunday 00:00 UTC of the week covered. */
+    weekStart: timestamp("week_start", { withTimezone: true }).notNull(),
+
+    /** The five, each with its materiality and the reasons behind it. */
+    items: jsonb("items").notNull(),
+    suppressed: integer("suppressed").notNull().default(0),
+    suppressedSummary: text("suppressed_summary"),
+
+    /** One digest per week, even if the Sunday cron retries. */
+    dedupeKey: text("dedupe_key").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    dedupeIdx: uniqueIndex("digests_dedupe_idx").on(t.dedupeKey),
+    weekIdx: index("digests_week_idx").on(t.weekStart),
+  }),
+);

@@ -12,6 +12,7 @@ import {
   Send,
   NotebookPen,
   Target,
+  Newspaper,
   Menu,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { href: "/handoffs", label: "Handoffs", icon: Send, testId: "handoffs" },
   { href: "/journal", label: "Decision Journal", icon: NotebookPen, testId: "journal" },
   { href: "/precommitments", label: "Decided in Advance", icon: Target, testId: "precommitments" },
+  { href: "/digest", label: "This Week", icon: Newspaper, testId: "digest" },
   { href: "/watchlist", label: "Watchlist", icon: ListChecks, testId: "watchlist" },
   { href: "/sources", label: "Source Management", icon: Database, testId: "sources" },
   { href: "/audit", label: "Compliance & Audit Log", icon: ShieldCheck, testId: "audit" },

@@ -20,6 +20,7 @@ import HandoffNew from "@/pages/handoff-new";
 import Handoffs, { HandoffDetail } from "@/pages/handoffs";
 import Journal, { JournalEntry } from "@/pages/journal";
 import Precommitments from "@/pages/precommitments";
+import DigestPage from "@/pages/digest";
 
 function AppRouter() {
   return (
@@ -40,6 +41,7 @@ function AppRouter() {
       <Route path="/journal" component={Journal} />
       <Route path="/journal/:id" component={JournalEntry} />
       <Route path="/precommitments" component={Precommitments} />
+      <Route path="/digest" component={DigestPage} />
       <Route component={NotFound} />
     </Switch>
   );

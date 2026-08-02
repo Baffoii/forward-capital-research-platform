@@ -36,6 +36,13 @@
       "when": 1785704882765,
       "tag": "0004_zippy_sphinx",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785705136350,
+      "tag": "0005_exotic_bastion",
+      "breakpoints": true
     }
   ]
 }
