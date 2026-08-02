@@ -265,7 +265,7 @@ export function aggregateExposure(
 
   const out: AggregatedExposure[] = [];
 
-  for (const [key, rows] of byPair) {
+  for (const [key, rows] of Array.from(byPair.entries())) {
     const byVia = new Map<string, DerivedExposure[]>();
     for (const r of rows) {
       const viaKey = r.viaCompanyId === null ? "direct" : String(r.viaCompanyId);
@@ -275,7 +275,7 @@ export function aggregateExposure(
     }
 
     const winners: DerivedExposure[] = [];
-    for (const [, group] of byVia) {
+    for (const group of Array.from(byVia.values())) {
       // Same counterparty: take the largest reading, tie-break on confidence.
       const best = group.reduce((a, b) =>
         b.revenueShare > a.revenueShare ||

@@ -96,7 +96,7 @@ export async function fetchAnnualRevenue(ticker: string): Promise<RevenueFact[]>
         const prev = byPeriod.get(r.fiscalPeriod);
         if (!prev || r.knownAt < prev.knownAt) byPeriod.set(r.fiscalPeriod, r);
       }
-      return [...byPeriod.values()].sort(
+      return Array.from(byPeriod.values()).sort(
         (a, b) => a.effectiveFrom.getTime() - b.effectiveFrom.getTime(),
       );
     }
