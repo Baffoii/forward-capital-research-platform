@@ -182,6 +182,7 @@ export async function runWatcherForCompany(
   }
 
   queued.push(...(await checkKillCriteria(facts, constraintFacts, now, result)));
+  queued.push(...(await checkPrecommitments(facts, constraintFacts, now, result)));
 
   const written = await queueNotifications(queued);
   result.notificationsQueued = written.length;
@@ -298,6 +299,120 @@ async function checkKillCriteria(
       firedAt: now.toISOString(),
       context: ctx,
     });
+  }
+
+  return queued;
+}
+
+/**
+ * Check the conditions this team wrote for itself in advance.
+ *
+ * The notification carries the decision AND the reasoning verbatim, because by
+ * the time a condition is met the author is looking at a red number and will
+ * reason their way out of it. A link to the reasoning is not the same thing as
+ * the reasoning.
+ *
+ * NOTHING HERE PLACES OR EXPORTS A TRADE. It sends a message and stops.
+ */
+async function checkPrecommitments(
+  facts: CompanyFacts,
+  constraintFacts: Map<string, Context>,
+  now: Date,
+  result: WatcherRunResult,
+): Promise<NewNotification[]> {
+  const { listPrecommitments, markMet } = await import("../precommitments/store");
+  const armed = await listPrecommitments({ companyId: facts.companyId, status: "armed" });
+  const queued: NewNotification[] = [];
+
+  for (const commitment of armed) {
+    const ctx = { ...facts.base };
+    result.rulesChecked++;
+
+    const verdict = evaluate(commitment.predicate, ctx);
+
+    if (verdict === "unknown") {
+      const missing = missingFields(commitment.predicate, ctx);
+      result.uncheckable.push(`precommitment:${commitment.id}: missing ${missing.join(", ")}`);
+      const { subject, body } = composeUncheckableNotification({
+        ruleName: commitment.conditionText,
+        companyName: facts.name,
+        ticker: facts.ticker,
+        predicate: commitment.predicate,
+        missing,
+      });
+      queued.push({
+        kind: "precommitment",
+        ruleId: null,
+        recipientEmail: commitment.authorEmail,
+        subject,
+        body,
+        payload: { precommitmentId: commitment.id, missing, uncheckable: true },
+        companyId: facts.companyId,
+        ticker: facts.ticker,
+        dedupeKey: `precommit-uncheckable:${commitment.id}:${isoWeek(now)}`,
+      });
+      continue;
+    }
+
+    if (verdict === false) continue;
+
+    result.matched++;
+
+    const { subject, body } = composeRuleNotification({
+      ruleName: commitment.actionText,
+      ruleDescription:
+        `You wrote this when you were calm:\n` +
+        `  If: ${commitment.conditionText}\n` +
+        `  Then: ${commitment.actionText}\n` +
+        `  Because: ${commitment.reasoning}`,
+      predicate: commitment.predicate,
+      companyName: facts.name,
+      ticker: facts.ticker,
+      headline: `${facts.name}: a condition you set has been met.`,
+      context: ctx,
+    });
+
+    // The author, and only the author. This is their own rule about their own
+    // reasoning — copying the team in turns a private commitment device into
+    // social pressure, which is a different and worse thing.
+    queued.push({
+      kind: "precommitment",
+      ruleId: null,
+      recipientEmail: commitment.authorEmail,
+      subject,
+      body,
+      payload: {
+        precommitmentId: commitment.id,
+        conditionText: commitment.conditionText,
+        actionText: commitment.actionText,
+        reasoning: commitment.reasoning,
+        context: ctx,
+      },
+      companyId: facts.companyId,
+      ticker: facts.ticker,
+      dedupeKey: `precommit:${commitment.id}`,
+    });
+
+    await appendWorldEvent({
+      kind: "precommitment_met",
+      companyId: facts.companyId,
+      ticker: facts.ticker,
+      headline: `${facts.name}: a condition ${commitment.authorEmail.split("@")[0]} set in advance has been met`,
+      detail: `${commitment.conditionText} → ${commitment.actionText}`,
+      payload: {
+        precommitmentId: commitment.id,
+        conditionText: commitment.conditionText,
+        actionText: commitment.actionText,
+        companyName: facts.name,
+      },
+      materiality: 0.9,
+      sourceRef: `precommitment:${commitment.id}`,
+      occurredAt: now,
+      knownAt: now,
+      dedupeKey: `precommit-met:${commitment.id}`,
+    });
+
+    await markMet(commitment.id, ctx as Record<string, unknown>);
   }
 
   return queued;

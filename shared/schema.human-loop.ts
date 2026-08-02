@@ -478,3 +478,71 @@ export const journalReviews = pgTable(
     entryIdx: index("journal_reviews_entry_idx").on(t.entryId, t.createdAt),
   }),
 );
+
+/* ------------------------------------------------------------------ */
+/* precommitments — decided in advance, executed by a human            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * "If backlog comes in below $2.1bn, trim 30%."
+ *
+ * The value is entirely in the fact that it was decided when calm. By the time
+ * the condition is met you are looking at a red number and will reason your way
+ * out of it, so the notification carries the decision AND the reasoning
+ * verbatim — not a link to them.
+ *
+ * ── HARD CONSTRAINT ──────────────────────────────────────────────────────
+ * NOTHING IN THIS SYSTEM PLACES OR EXPORTS A TRADE. Not here, not anywhere in
+ * this repo. When a condition is met the system sends a message and stops. A
+ * human decides, and executes in their own brokerage. There is deliberately no
+ * broker integration, no order file, no CSV export of positions to act on, and
+ * no field on this table that could hold one. See the compliance notes in
+ * README.md — this is core to the design, not incidental.
+ * ─────────────────────────────────────────────────────────────────────────
+ */
+export const precommitments = pgTable(
+  "precommitments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    companyId: integer("company_id").notNull(),
+    ticker: text("ticker"),
+
+    authorId: uuid("author_id").notNull(),
+    authorEmail: text("author_email").notNull(),
+
+    /** The condition in the author's own words. Goes in the notification. */
+    conditionText: text("condition_text").notNull(),
+    /** What they decided to do about it. Also verbatim. */
+    actionText: text("action_text").notNull(),
+    /** Why — written while calm, which is the whole point. */
+    reasoning: text("reasoning").notNull(),
+
+    /** Machine-checkable form of conditionText. Same language as watcher rules. */
+    predicate: jsonb("predicate").notNull(),
+
+    /** armed | met | retired */
+    status: text("status").notNull().default("armed"),
+    metAt: timestamp("met_at", { withTimezone: true }),
+    /** The numbers at the moment it was met, so the record stands alone later. */
+    metContext: jsonb("met_context"),
+
+    /**
+     * What the human actually did. Not "did the system execute" — it never
+     * does — but "did you follow through, and if not, why not". That gap is
+     * the most interesting thing this table records.
+     */
+    acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }),
+    acknowledgedBy: text("acknowledged_by"),
+    /** followed | ignored | changed_mind */
+    outcome: text("outcome"),
+    outcomeNote: text("outcome_note"),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    armedIdx: index("precommitments_armed_idx").on(t.status, t.companyId),
+    companyIdx: index("precommitments_company_idx").on(t.companyId, t.createdAt),
+  }),
+);

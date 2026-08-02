@@ -25,6 +25,7 @@ export const WORLD_EVENT_KINDS = {
   recognition_change: "The market is noticing this name more",
   estimate_revision: "Analysts changed their forecasts",
   kill_criterion_fired: "Something we said would prove us wrong has happened",
+  precommitment_met: "A condition someone set in advance has been met",
   constraint_state_change: "A supply bottleneck got tighter or looser",
   earnings_reported: "Quarterly results came out",
   signal_recorded: "A new piece of evidence was recorded",

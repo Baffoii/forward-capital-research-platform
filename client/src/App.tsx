@@ -19,6 +19,7 @@ import AuditLogPage from "@/pages/audit-log";
 import HandoffNew from "@/pages/handoff-new";
 import Handoffs, { HandoffDetail } from "@/pages/handoffs";
 import Journal, { JournalEntry } from "@/pages/journal";
+import Precommitments from "@/pages/precommitments";
 
 function AppRouter() {
   return (
@@ -38,6 +39,7 @@ function AppRouter() {
       <Route path="/handoffs/:id" component={HandoffDetail} />
       <Route path="/journal" component={Journal} />
       <Route path="/journal/:id" component={JournalEntry} />
+      <Route path="/precommitments" component={Precommitments} />
       <Route component={NotFound} />
     </Switch>
   );
