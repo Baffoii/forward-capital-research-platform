@@ -13,6 +13,7 @@ import { queueNotifications } from "../watcher/store";
 import { listOpenPositions } from "../watcher/context";
 import { listRecognitionSnapshots } from "../scoring/store";
 import { TEAM_EMAILS } from "@shared/team";
+import { renderDigestEmail } from "./render";
 import {
   buildDigest,
   recognitionShift,
@@ -244,41 +245,6 @@ export async function buildWeeklyDigest(now = new Date()): Promise<BuildResult> 
   };
 }
 
-/**
- * Plain text, complete on its own.
- *
- * Someone should be able to read this on a phone on Monday morning and know
- * whether anything needs them, without opening the app.
- */
-export function renderDigestEmail(digest: DigestRow): string {
-  if (digest.items.length === 0) {
-    return [
-      "Nothing happened this week that clears the bar for your attention.",
-      digest.suppressedSummary ?? "Nothing at all was recorded, which is itself worth a glance.",
-      "Nothing has been traded. This is a summary, not advice.",
-    ].join("\n\n");
-  }
-
-  const parts: string[] = [
-    `${digest.items.length} thing${digest.items.length === 1 ? "" : "s"} worth your attention this week.`,
-  ];
-
-  digest.items.forEach((item, index) => {
-    const lines: string[] = [
-      `${index + 1}. ${item.candidate.ticker ? `${item.candidate.ticker} — ` : ""}${item.candidate.headline}`,
-    ];
-    if (item.isExitSignal) {
-      lines.push(
-        "   ⤷ This is the thesis completing, not confirmation. It's a reason to think about trimming.",
-      );
-    }
-    if (item.candidate.detail) lines.push(`   ${item.candidate.detail}`);
-    lines.push(`   Why this made the list: ${item.reasons.join("; ")}`);
-    parts.push(lines.join("\n"));
-  });
-
-  if (digest.suppressedSummary) parts.push(digest.suppressedSummary);
-  parts.push("Nothing has been traded. This is a summary, not advice.");
-
-  return parts.join("\n\n");
-}
+// Re-exported so callers keep importing it from here; the implementation is
+// in ./render.ts because that file has no database imports and can be tested.
+export { renderDigestEmail };
