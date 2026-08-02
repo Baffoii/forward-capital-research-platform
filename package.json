@@ -12,7 +12,9 @@
     "seed:constraints": "tsx server/scoring/seed-constraints.ts",
     "db:push": "drizzle-kit push",
     "db:generate:constraints": "drizzle-kit generate --config=drizzle.config.constraints.ts",
-    "db:push:constraints": "drizzle-kit push --config=drizzle.config.constraints.ts"
+    "db:push:constraints": "drizzle-kit push --config=drizzle.config.constraints.ts",
+    "db:generate:human-loop": "drizzle-kit generate --config=drizzle.config.human-loop.ts",
+    "db:push:human-loop": "drizzle-kit push --config=drizzle.config.human-loop.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

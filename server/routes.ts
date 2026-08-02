@@ -56,6 +56,13 @@ export function requireAdminToken(req: Request, res: Response, next: NextFunctio
 }
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
+  // ── The human loop: the two logs and everything built on them ─────────
+  // Imported lazily so this module stays importable by the human-loop routes
+  // (which need requireAdminToken from here) without a circular import at
+  // module-evaluation time.
+  const { registerHumanLoopRoutes } = await import("./human-loop/routes");
+  registerHumanLoopRoutes(app);
+
   // ── Who am I ──────────────────────────────────────────────────────────
   // The browser already knows this from its own Supabase session; the point of
   // asking the server is that this is the answer that counts. If this 401s,
