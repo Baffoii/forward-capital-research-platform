@@ -14,6 +14,7 @@ import {
   Target,
   Newspaper,
   Compass,
+  Timer,
   Menu,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { href: "/journal", label: "Decision Journal", icon: NotebookPen, testId: "journal" },
   { href: "/precommitments", label: "Decided in Advance", icon: Target, testId: "precommitments" },
   { href: "/digest", label: "This Week", icon: Newspaper, testId: "digest" },
+  { href: "/queue", label: "What's Worth an Hour", icon: Timer, testId: "queue" },
   { href: "/watchlist", label: "Watchlist", icon: ListChecks, testId: "watchlist" },
   { href: "/sources", label: "Source Management", icon: Database, testId: "sources" },
   { href: "/audit", label: "Compliance & Audit Log", icon: ShieldCheck, testId: "audit" },

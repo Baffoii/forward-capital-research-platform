@@ -22,6 +22,7 @@ import Journal, { JournalEntry } from "@/pages/journal";
 import Precommitments from "@/pages/precommitments";
 import DigestPage from "@/pages/digest";
 import Briefing from "@/pages/briefing";
+import ResearchQueue from "@/pages/research-queue";
 
 function AppRouter() {
   return (
@@ -46,6 +47,7 @@ function AppRouter() {
       <Route path="/journal/:id" component={JournalEntry} />
       <Route path="/precommitments" component={Precommitments} />
       <Route path="/digest" component={DigestPage} />
+      <Route path="/queue" component={ResearchQueue} />
       <Route component={NotFound} />
     </Switch>
   );

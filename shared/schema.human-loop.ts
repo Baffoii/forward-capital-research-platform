@@ -584,3 +584,74 @@ export const digests = pgTable(
     weekIdx: index("digests_week_idx").on(t.weekStart),
   }),
 );
+
+/* ------------------------------------------------------------------ */
+/* research_items — where an hour would change a decision              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A specific question an hour of work would answer.
+ *
+ * Not "look at Vertiv" — "find out whether Vertiv's long-term contracts have
+ * price escalators". The queue ranks by value of information, and a vague item
+ * can't be estimated, can't be finished, and can't be told apart from the
+ * general anxiety of not having read enough.
+ *
+ * The claim fields are the reason this table exists at all rather than being
+ * derived: two people, three time zones of availability, one Saturday, and no
+ * way to tell whether the other has already started.
+ */
+export const researchItems = pgTable(
+  "research_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    companyId: integer("company_id").notNull(),
+    ticker: text("ticker"),
+
+    /** The question. Specific enough to be finished. */
+    question: text("question").notNull(),
+
+    /** How big we'd go if this resolves well, as % of the book. */
+    intendedPositionPct: numeric("intended_position_pct", { precision: 6, scale: 3 })
+      .notNull()
+      .default("1"),
+    /** 0..1 — does the answer decay if we wait. Earnings next week is a 1. */
+    timeSensitivity: numeric("time_sensitivity", { precision: 4, scale: 3 })
+      .notNull()
+      .default("0.5"),
+    estimatedHours: numeric("estimated_hours", { precision: 5, scale: 2 })
+      .notNull()
+      .default("2"),
+
+    createdBy: text("created_by").notNull(),
+
+    /**
+     * open | claimed | done | not_worth_more_time
+     *
+     * `not_worth_more_time` is a first-class terminal state sitting alongside
+     * `done`, not a form of abandonment. Deciding a name isn't worth another
+     * hour takes it off everyone's list, which is a real result — and the
+     * queue reads these logs, so a system that only recorded activity would
+     * produce activity.
+     */
+    status: text("status").notNull().default("open"),
+
+    /** Who currently has it. Null means free. */
+    claimedBy: text("claimed_by"),
+    claimedAt: timestamp("claimed_at", { withTimezone: true }),
+
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    closedBy: text("closed_by"),
+    /** What they found, or why it wasn't worth more time. */
+    conclusion: text("conclusion"),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    statusIdx: index("research_items_status_idx").on(t.status, t.createdAt),
+    companyIdx: index("research_items_company_idx").on(t.companyId),
+    claimIdx: index("research_items_claim_idx").on(t.claimedBy, t.status),
+  }),
+);

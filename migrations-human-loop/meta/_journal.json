@@ -43,6 +43,13 @@
       "when": 1785705136350,
       "tag": "0005_exotic_bastion",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785705608202,
+      "tag": "0006_fresh_triathlon",
+      "breakpoints": true
     }
   ]
 }
