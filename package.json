@@ -10,6 +10,8 @@
     "check": "tsc",
     "test": "node scripts/run-tests.mjs",
     "seed:constraints": "tsx server/scoring/seed-constraints.ts",
+    "score": "tsx server/scoring/cli.ts",
+    "pipeline": "tsx server/scoring/cli.ts pipeline",
     "db:push": "drizzle-kit push",
     "db:generate:constraints": "drizzle-kit generate --config=drizzle.config.constraints.ts",
     "db:push:constraints": "drizzle-kit push --config=drizzle.config.constraints.ts"
