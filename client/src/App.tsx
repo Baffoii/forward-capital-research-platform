@@ -14,6 +14,7 @@ import ResearchInbox from "@/pages/research-inbox";
 import Watchlist from "@/pages/watchlist";
 import SourceManagement from "@/pages/source-management";
 import AuditLogPage from "@/pages/audit-log";
+import OpportunityBoard from "@/pages/opportunity-board";
 
 function AppRouter() {
   return (
@@ -25,6 +26,7 @@ function AppRouter() {
       <Route path="/inbox" component={ResearchInbox} />
       <Route path="/watchlist" component={Watchlist} />
       <Route path="/sources" component={SourceManagement} />
+      <Route path="/board" component={OpportunityBoard} />
       <Route path="/audit" component={AuditLogPage} />
       <Route component={NotFound} />
     </Switch>
