@@ -18,7 +18,7 @@ async function rateLimit() {
   lastRequestTimestamps.push(Date.now());
 }
 
-async function secFetch(url: string): Promise<Response> {
+export async function secFetch(url: string): Promise<Response> {
   await rateLimit();
   return fetch(url, {
     headers: {
