@@ -22,6 +22,13 @@
       "when": 1785704352575,
       "tag": "0002_aspiring_zeigeist",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785704670423,
+      "tag": "0003_thankful_absorbing_man",
+      "breakpoints": true
     }
   ]
 }

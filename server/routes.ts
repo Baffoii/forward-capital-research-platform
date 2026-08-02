@@ -66,6 +66,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   registerWatcherRoutes(app);
   const { registerHandoffRoutes } = await import("./handoffs/routes");
   registerHandoffRoutes(app);
+  const { registerJournalRoutes } = await import("./journal/routes");
+  registerJournalRoutes(app);
 
   // ── Who am I ──────────────────────────────────────────────────────────
   // The browser already knows this from its own Supabase session; the point of

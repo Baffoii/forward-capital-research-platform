@@ -10,6 +10,7 @@ import {
   Database,
   ShieldCheck,
   Send,
+  NotebookPen,
   Menu,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { href: "/signals", label: "Signal Feed", icon: Rss, testId: "signals" },
   { href: "/inbox", label: "Research Inbox", icon: Inbox, testId: "inbox" },
   { href: "/handoffs", label: "Handoffs", icon: Send, testId: "handoffs" },
+  { href: "/journal", label: "Decision Journal", icon: NotebookPen, testId: "journal" },
   { href: "/watchlist", label: "Watchlist", icon: ListChecks, testId: "watchlist" },
   { href: "/sources", label: "Source Management", icon: Database, testId: "sources" },
   { href: "/audit", label: "Compliance & Audit Log", icon: ShieldCheck, testId: "audit" },

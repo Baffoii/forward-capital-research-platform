@@ -18,6 +18,7 @@ import SourceManagement from "@/pages/source-management";
 import AuditLogPage from "@/pages/audit-log";
 import HandoffNew from "@/pages/handoff-new";
 import Handoffs, { HandoffDetail } from "@/pages/handoffs";
+import Journal, { JournalEntry } from "@/pages/journal";
 
 function AppRouter() {
   return (
@@ -35,6 +36,8 @@ function AppRouter() {
       <Route path="/h" component={HandoffNew} />
       <Route path="/handoffs" component={Handoffs} />
       <Route path="/handoffs/:id" component={HandoffDetail} />
+      <Route path="/journal" component={Journal} />
+      <Route path="/journal/:id" component={JournalEntry} />
       <Route component={NotFound} />
     </Switch>
   );

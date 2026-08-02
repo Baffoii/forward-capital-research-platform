@@ -383,3 +383,98 @@ export const handoffPackets = pgTable(
 
 /** How long an unaccepted packet sits before everyone gets told about it. */
 export const HANDOFF_ESCALATION_HOURS = 48;
+
+/* ------------------------------------------------------------------ */
+/* journal_entries — the reasoning, written at the time                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Why we did this, written when we did it.
+ *
+ * A normal form is right here, unlike handoffs: this is written at a desk when
+ * a position goes on, not typed one-handed between classes, and the three
+ * fields are exactly the three things that are worth arguing with later.
+ *
+ * Nothing in this table is ever edited. The whole value of the record is that
+ * it says what you thought then, not what you'd like to have thought. Changing
+ * your mind means writing a review (below), which is a separate row.
+ */
+export const journalEntries = pgTable(
+  "journal_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    companyId: integer("company_id").notNull(),
+    ticker: text("ticker"),
+    /** Optional link to a row in `positions`. */
+    positionId: uuid("position_id"),
+
+    authorId: uuid("author_id").notNull(),
+    authorEmail: text("author_email").notNull(),
+
+    /** What we believe. */
+    belief: text("belief").notNull(),
+    /** What we expect, and by when. */
+    expectation: text("expectation").notNull(),
+    expectBy: timestamp("expect_by", { withTimezone: true }),
+    /** What would change our mind. The field people skip and later wish they hadn't. */
+    falsifier: text("falsifier").notNull(),
+
+    /** If this was written from a longer note, keep the note. */
+    rawText: text("raw_text"),
+
+    /** open | closed — closed when the position is exited. */
+    status: text("status").notNull().default("open"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    companyIdx: index("journal_company_idx").on(t.companyId, t.createdAt),
+    dueIdx: index("journal_due_idx").on(t.status, t.expectBy),
+  }),
+);
+
+/* ------------------------------------------------------------------ */
+/* journal_reviews — the calibration record                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Whether the author still agrees with themselves, and why not if not.
+ *
+ * This is the dataset that eventually says something useful about how this
+ * team thinks: not whether the trades worked, but whether the reasoning held
+ * up, and which kinds of reasoning stop holding up first.
+ *
+ * Append-only in spirit and in practice — a second look is a second row. The
+ * trigger payload is stored alongside so a future reading knows what was
+ * happening at the moment the question was asked.
+ */
+export const journalReviews = pgTable(
+  "journal_reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    entryId: uuid("entry_id")
+      .notNull()
+      .references(() => journalEntries.id, { onDelete: "cascade" }),
+
+    reviewerId: uuid("reviewer_id").notNull(),
+    reviewerEmail: text("reviewer_email").notNull(),
+
+    /** earnings | kill_criterion_near | price_move | expectation_due | scheduled | manual */
+    triggerKind: text("trigger_kind").notNull(),
+    /** What had happened, captured at the moment we asked. */
+    triggerPayload: jsonb("trigger_payload").notNull().default({}),
+
+    /** yes | no | partly — the calibration signal. */
+    stillAgree: text("still_agree").notNull(),
+    /** What changed, in their words. */
+    note: text("note"),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    entryIdx: index("journal_reviews_entry_idx").on(t.entryId, t.createdAt),
+  }),
+);
