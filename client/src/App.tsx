@@ -16,6 +16,8 @@ import ResearchInbox from "@/pages/research-inbox";
 import Watchlist from "@/pages/watchlist";
 import SourceManagement from "@/pages/source-management";
 import AuditLogPage from "@/pages/audit-log";
+import HandoffNew from "@/pages/handoff-new";
+import Handoffs, { HandoffDetail } from "@/pages/handoffs";
 
 function AppRouter() {
   return (
@@ -28,6 +30,11 @@ function AppRouter() {
       <Route path="/watchlist" component={Watchlist} />
       <Route path="/sources" component={SourceManagement} />
       <Route path="/audit" component={AuditLogPage} />
+      {/* Short route on purpose — this gets typed on a phone between classes,
+          and it opens straight into the textarea with nothing in the way. */}
+      <Route path="/h" component={HandoffNew} />
+      <Route path="/handoffs" component={Handoffs} />
+      <Route path="/handoffs/:id" component={HandoffDetail} />
       <Route component={NotFound} />
     </Switch>
   );

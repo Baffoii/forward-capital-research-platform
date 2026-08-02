@@ -302,3 +302,84 @@ export const notifications = pgTable(
     ),
   }),
 );
+
+/* ------------------------------------------------------------------ */
+/* handoff_packets — handing work to a teammate without dropping it    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The failure this table exists to prevent is silent dropped work: three
+ * part-time people, never online at the same time, each assuming someone else
+ * has it.
+ *
+ * `rawText` is the only field guaranteed to be filled in. The input is ONE
+ * textarea that accepts whatever was in someone's head, typed between classes
+ * on a phone. Everything below it is derived afterwards and is editable,
+ * because the derivation will sometimes be wrong. A form with eight labelled
+ * fields would not get filled in and the team would go back to texting.
+ */
+export const handoffPackets = pgTable(
+  "handoff_packets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+
+    authorId: uuid("author_id").notNull(),
+    authorEmail: text("author_email").notNull(),
+    /** Who it's for. Null means "somebody pick this up". */
+    assigneeEmail: text("assignee_email"),
+
+    /** Exactly what the person typed. Never overwritten, never derived from. */
+    rawText: text("raw_text").notNull(),
+
+    /* -- Derived, editable. Null until structuring runs (or never). -- */
+    ticker: text("ticker"),
+    companyId: integer("company_id"),
+    /** What I found. */
+    found: text("found"),
+    /** What's still open. */
+    stillOpen: text("still_open"),
+    /** What you need to decide. */
+    needsDecision: text("needs_decision"),
+    /** Links, filings, page numbers — whatever was cited. */
+    sources: jsonb("sources").notNull().default([]),
+
+    /** pending | structured | unavailable | edited | skipped */
+    structuringStatus: text("structuring_status").notNull().default("pending"),
+    /**
+     * At most ONE follow-up question, asked only when something essential is
+     * missing. Eight questions is a form, and a form is what we're avoiding.
+     */
+    followupQuestion: text("followup_question"),
+    followupAnswer: text("followup_answer"),
+
+    /** open | accepted | closed */
+    status: text("status").notNull().default("open"),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    acceptedBy: text("accepted_by"),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    closedBy: text("closed_by"),
+    closingNote: text("closing_note"),
+
+    /**
+     * Set when the 48-hour reminder went out, so it goes out once rather than
+     * every time the scheduled job runs.
+     */
+    escalatedAt: timestamp("escalated_at", { withTimezone: true }),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    // "what's waiting on me" and "what hasn't been picked up yet".
+    assigneeIdx: index("handoff_assignee_idx").on(t.assigneeEmail, t.status),
+    openIdx: index("handoff_open_idx").on(t.status, t.createdAt),
+    authorIdx: index("handoff_author_idx").on(t.authorId, t.createdAt),
+  }),
+);
+
+/** How long an unaccepted packet sits before everyone gets told about it. */
+export const HANDOFF_ESCALATION_HOURS = 48;
