@@ -72,6 +72,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   registerPrecommitmentRoutes(app);
   const { registerDigestRoutes } = await import("./digest/routes");
   registerDigestRoutes(app);
+  const { registerBriefingRoutes } = await import("./briefing/routes");
+  registerBriefingRoutes(app);
 
   // ── Who am I ──────────────────────────────────────────────────────────
   // The browser already knows this from its own Supabase session; the point of

@@ -21,11 +21,15 @@ import Handoffs, { HandoffDetail } from "@/pages/handoffs";
 import Journal, { JournalEntry } from "@/pages/journal";
 import Precommitments from "@/pages/precommitments";
 import DigestPage from "@/pages/digest";
+import Briefing from "@/pages/briefing";
 
 function AppRouter() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
+      {/* The briefing is the landing view: this app is opened after a gap,
+          and "where did I leave off" beats "here is everything". */}
+      <Route path="/" component={Briefing} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route path="/thesis" component={ThesisWorkspace} />
       <Route path="/companies/:id" component={CompanyIntelligence} />
       <Route path="/signals" component={SignalFeed} />

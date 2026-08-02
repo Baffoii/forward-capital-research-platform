@@ -13,6 +13,7 @@ import {
   NotebookPen,
   Target,
   Newspaper,
+  Compass,
   Menu,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -20,7 +21,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard, testId: "dashboard" },
+  { href: "/", label: "Where You Left Off", icon: Compass, testId: "briefing" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, testId: "dashboard" },
   { href: "/thesis", label: "Thesis Workspace", icon: FlaskConical, testId: "thesis" },
   { href: "/signals", label: "Signal Feed", icon: Rss, testId: "signals" },
   { href: "/inbox", label: "Research Inbox", icon: Inbox, testId: "inbox" },
