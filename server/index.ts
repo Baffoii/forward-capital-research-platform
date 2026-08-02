@@ -120,7 +120,10 @@ app.use((req, res, next) => {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
+      // reusePort is what the deployment target wants, but macOS rejects it at
+      // listen() time with ENOTSUP on every port, so the server cannot start
+      // locally at all with it set. Kept for every other platform.
+      ...(process.platform === "darwin" ? {} : { reusePort: true }),
     },
     () => {
       log(`serving on port ${port}`);
