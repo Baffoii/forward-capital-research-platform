@@ -62,6 +62,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // module-evaluation time.
   const { registerHumanLoopRoutes } = await import("./human-loop/routes");
   registerHumanLoopRoutes(app);
+  const { registerWatcherRoutes } = await import("./watcher/routes");
+  registerWatcherRoutes(app);
 
   // ── Who am I ──────────────────────────────────────────────────────────
   // The browser already knows this from its own Supabase session; the point of

@@ -123,3 +123,29 @@ export const CLOSING_KINDS: readonly string[] = Array.from(
  * and this morning are correctly two separate visits.
  */
 export const SESSION_GAP_MINUTES = 30;
+
+/* ------------------------------------------------------------------ */
+/* Notifications                                                       */
+/* ------------------------------------------------------------------ */
+
+export const NOTIFICATION_KINDS = {
+  kill_criterion: "Something we said would prove us wrong has happened",
+  precommitment: "A rule you wrote in advance has been met",
+  handoff_assigned: "A teammate handed you work",
+  handoff_escalation: "Handed-off work nobody has picked up",
+  journal_resurface: "Time to revisit reasoning you wrote earlier",
+  weekly_digest: "This week's five things",
+} as const;
+
+export type NotificationKind = keyof typeof NOTIFICATION_KINDS;
+
+/**
+ * How often the watcher checks a rule.
+ *
+ * `immediate` still means "next scheduled run", not "this instant" — the
+ * checker runs on a cron. The distinction that matters is that immediate rules
+ * are checked every run and notify one at a time, while weekly ones are
+ * batched into the digest.
+ */
+export const RULE_CADENCES = ["immediate", "daily", "weekly"] as const;
+export type RuleCadence = (typeof RULE_CADENCES)[number];

@@ -5,6 +5,7 @@ import {
   timestamp,
   numeric,
   integer,
+  boolean,
   jsonb,
   index,
   uniqueIndex,
@@ -188,5 +189,116 @@ export const humanEvents = pgTable(
     companyIdx: index("human_events_company_idx").on(t.companyId, t.occurredAt),
     // Resolving open items pairs openers with closers by subject.
     subjectIdx: index("human_events_subject_idx").on(t.subjectType, t.subjectId),
+  }),
+);
+
+/* ------------------------------------------------------------------ */
+/* watcher_rules — what we've asked to be told about                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A rule is a stored JSON predicate plus who to tell and how often to check.
+ *
+ * Stored rather than coded so a rule can be written, read back and argued with
+ * without a deploy. The language and its three-valued evaluation live in
+ * server/watcher/predicate.ts.
+ */
+export const watcherRules = pgTable(
+  "watcher_rules",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull(),
+    /** Short name, shown in the notification subject. */
+    name: text("name").notNull(),
+    /**
+     * Plain language, written by whoever made the rule: what this is watching
+     * for and why we care. This text goes into the notification, which is how
+     * a notification manages to be actionable without opening the app.
+     */
+    description: text("description"),
+
+    /** What kind of notification this produces. See NOTIFICATION_KINDS. */
+    kind: text("kind").notNull(),
+    /** immediate | daily | weekly */
+    cadence: text("cadence").notNull(),
+
+    predicate: jsonb("predicate").notNull(),
+
+    /** Team emails. Empty list means everyone. */
+    recipients: jsonb("recipients").notNull().default([]),
+
+    /**
+     * Which company this rule is about, or null for rules that apply to every
+     * company we follow.
+     */
+    companyId: integer("company_id"),
+
+    enabled: boolean("enabled").notNull().default(true),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    slugIdx: uniqueIndex("watcher_rules_slug_idx").on(t.slug),
+    activeIdx: index("watcher_rules_active_idx").on(t.enabled, t.cadence),
+  }),
+);
+
+/* ------------------------------------------------------------------ */
+/* notifications — the thing that actually reaches a person            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Not a log — this table tracks delivery, so sentAt and clickedAt are updated
+ * in place. The two logs are the append-only ones.
+ *
+ * `body` must be complete on its own. A notification that says "3 things need
+ * your attention, log in to see them" is a dashboard with extra steps, and a
+ * dashboard you have to remember to open is the exact thing this phase exists
+ * to escape.
+ */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    kind: text("kind").notNull(),
+    ruleId: uuid("rule_id"),
+
+    recipientEmail: text("recipient_email").notNull(),
+    subject: text("subject").notNull(),
+    /** Plain text, self-contained, plain language. */
+    body: text("body").notNull(),
+
+    /** Structured copy of everything in the body, for the UI and for tuning. */
+    payload: jsonb("payload").notNull().default({}),
+
+    companyId: integer("company_id"),
+    ticker: text("ticker"),
+
+    /**
+     * Idempotency across cron retries. Format
+     * "<rule slug>:<what triggered it>". Without it a retried job emails the
+     * same alert twice and the team learns to ignore the channel.
+     */
+    dedupeKey: text("dedupe_key").notNull(),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    sendAttempts: integer("send_attempts").notNull().default(0),
+    sendError: text("send_error"),
+    /** Set when someone follows a link from the notification. Feeds digest tuning. */
+    clickedAt: timestamp("clicked_at", { withTimezone: true }),
+  },
+  (t) => ({
+    dedupeIdx: uniqueIndex("notifications_dedupe_idx").on(t.dedupeKey),
+    // The dispatch job's query: "what hasn't gone out yet".
+    pendingIdx: index("notifications_pending_idx").on(t.sentAt, t.createdAt),
+    recipientIdx: index("notifications_recipient_idx").on(
+      t.recipientEmail,
+      t.createdAt,
+    ),
   }),
 );

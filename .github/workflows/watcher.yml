@@ -1,0 +1,118 @@
+# Scheduled jobs for the watcher.
+#
+# Why GitHub Actions and not an in-process timer: the app is deployed as a
+# serverless Node process that sleeps when nobody is using it. A setInterval in
+# server/index.ts would only run while somebody happened to be browsing, which
+# is exactly backwards — the whole point is that this works when nobody is
+# looking.
+#
+# Why many small HTTP calls and not one endpoint that does everything: doing
+# all companies' work in one request destabilised this app's deployment before
+# (see the note at the top of server/routes.ts). Each step below hits one small
+# endpoint, one company at a time, with a pause between.
+#
+# SETUP: two repository secrets are needed.
+#   APP_BASE_URL      e.g. https://forward-capital.pplx.app
+#   INGEST_ADMIN_TOKEN  the same value as the app's env var
+# Settings > Secrets and variables > Actions > New repository secret.
+
+name: watcher
+
+on:
+  schedule:
+    # Daily, 06:15 UTC — filings, price moves, kill criteria, pre-commitments.
+    # Just after US market close plus SEC's overnight filing batch, so the
+    # morning run sees a full previous day.
+    - cron: "15 6 * * *"
+    # Weekly digest, Sunday 22:00 UTC. Late Sunday so it's waiting on Monday
+    # morning rather than arriving mid-weekend and being read and forgotten.
+    - cron: "0 22 * * 0"
+  # Lets someone run it by hand from the Actions tab when debugging.
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Which job to run"
+        required: true
+        default: daily
+        type: choice
+        options: [daily, weekly]
+
+jobs:
+  daily:
+    # The weekly cron must not also trigger the daily job.
+    if: github.event.schedule != '0 22 * * 0' && inputs.job != 'weekly'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check every company, one small request at a time
+        env:
+          BASE: ${{ secrets.APP_BASE_URL }}
+          TOKEN: ${{ secrets.INGEST_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          plan=$(curl -sS --fail-with-body -H "x-admin-token: $TOKEN" "$BASE/api/admin/watcher/plan")
+          echo "plan: $plan"
+          ids=$(echo "$plan" | grep -o '"companyIds":\[[^]]*\]' | grep -o '[0-9]\+' || true)
+
+          for id in $ids; do
+            # || true: one company failing must not abandon the other twelve.
+            curl -sS -X POST -H "x-admin-token: $TOKEN" \
+              "$BASE/api/admin/watcher/company/$id" || echo "company $id failed, continuing"
+            echo
+            sleep 2
+          done
+
+      - name: Send what's queued
+        env:
+          BASE: ${{ secrets.APP_BASE_URL }}
+          TOKEN: ${{ secrets.INGEST_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Small batches, several passes, rather than one request draining the
+          # whole queue.
+          for _ in 1 2 3 4 5; do
+            curl -sS -X POST -H "x-admin-token: $TOKEN" \
+              "$BASE/api/admin/watcher/dispatch?batch=20"
+            echo
+            sleep 2
+          done
+
+      - name: Escalate handoffs nobody has picked up
+        env:
+          BASE: ${{ secrets.APP_BASE_URL }}
+          TOKEN: ${{ secrets.INGEST_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl -sS -X POST -H "x-admin-token: $TOKEN" \
+            "$BASE/api/admin/handoffs/escalate" || echo "escalation step not available yet"
+          echo
+
+      - name: Resurface decision-journal entries that are due
+        env:
+          BASE: ${{ secrets.APP_BASE_URL }}
+          TOKEN: ${{ secrets.INGEST_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl -sS -X POST -H "x-admin-token: $TOKEN" \
+            "$BASE/api/admin/journal/resurface" || echo "resurfacing step not available yet"
+          echo
+
+  weekly:
+    if: github.event.schedule == '0 22 * * 0' || inputs.job == 'weekly'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build and send the weekly digest
+        env:
+          BASE: ${{ secrets.APP_BASE_URL }}
+          TOKEN: ${{ secrets.INGEST_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl -sS -X POST -H "x-admin-token: $TOKEN" "$BASE/api/admin/digest/build"
+          echo
+          sleep 2
+          for _ in 1 2 3; do
+            curl -sS -X POST -H "x-admin-token: $TOKEN" \
+              "$BASE/api/admin/watcher/dispatch?batch=20"
+            echo
+            sleep 2
+          done
