@@ -164,14 +164,14 @@ export async function ingestBacklogForCompany(
     fetchQuarterlyConcept(cik, QUARTERLY_REVENUE_CONCEPTS),
     fetchQuarterlyConcept(cik, ["GrossProfit"]),
     fetchInstantConcept(cik, "RevenueRemainingPerformanceObligation"),
-    fetchFilingHistory(ticker, 40),
+    fetchFilingHistory(ticker, quarters, ["10-Q"]),
   ]);
 
   if (revenues.length === 0) {
     return { ticker, metricsWritten: 0, notes: ["no quarterly revenue tagged in XBRL"] };
   }
 
-  const tenQs = filings.filter((f) => f.form === "10-Q").slice(0, quarters);
+  const tenQs = filings;
   const metrics: NewCaptureMetric[] = [];
 
   for (const filing of tenQs) {

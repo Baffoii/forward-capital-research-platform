@@ -83,18 +83,26 @@ export async function fetchAnnualRevenue(ticker: string): Promise<RevenueFact[]>
       .filter((u: any) => u.form === "10-K" && u.fp === "FY" && u.start && u.end && u.filed)
       .map((u: any) => ({
         value: Number(u.val),
-        fiscalPeriod: `FY${u.fy}`,
+        // Derived from the period end, not u.fy — see the note below.
+        fiscalPeriod: `FY${new Date(u.end).getUTCFullYear()}`,
         effectiveFrom: new Date(u.end),
         knownAt: new Date(u.filed),
       }))
       .filter((r: RevenueFact) => Number.isFinite(r.value) && r.value > 0);
     if (annual.length > 0) {
-      // Same period can be reported in several filings; keep the earliest
-      // knownAt, since that is when we could first have known it.
+      // Key on the PERIOD END, not u.fy. In companyfacts, `fy`/`fp` describe
+      // the document the fact appeared in, not the period the fact covers — a
+      // FY2025 10-K carries FY2025, FY2024 and FY2023 revenue all tagged
+      // fy:2025. Keying on fy collapses three years into one bucket and leaves
+      // whichever survived, which is how a 10-K filed in 2026 ended up
+      // reporting 2023 revenue.
       const byPeriod = new Map<string, RevenueFact>();
       for (const r of annual) {
-        const prev = byPeriod.get(r.fiscalPeriod);
-        if (!prev || r.knownAt < prev.knownAt) byPeriod.set(r.fiscalPeriod, r);
+        const key = r.effectiveFrom.toISOString().slice(0, 10);
+        const prev = byPeriod.get(key);
+        // Same period restated in later filings: keep the earliest knownAt,
+        // since that is when we could first have known it.
+        if (!prev || r.knownAt < prev.knownAt) byPeriod.set(key, r);
       }
       return Array.from(byPeriod.values()).sort(
         (a, b) => a.effectiveFrom.getTime() - b.effectiveFrom.getTime(),
@@ -130,8 +138,10 @@ export interface ExtractedFilingFacts {
 export async function extractLatest10K(
   ticker: string,
 ): Promise<ExtractedFilingFacts | null> {
-  const filings = await fetchFilingHistory(ticker, 40);
-  const tenK = filings.find((f) => f.form === "10-K");
+  // Filter to 10-K server-side: Form 4s dominate the feed and slicing first
+  // returns zero annual reports for most issuers.
+  const filings = await fetchFilingHistory(ticker, 2, ["10-K"]);
+  const tenK = filings[0];
   if (!tenK) return null;
 
   const [html, revenues] = await Promise.all([
