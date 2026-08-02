@@ -5,6 +5,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import SignIn from "@/pages/sign-in";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import ThesisWorkspace from "@/pages/thesis-workspace";
@@ -31,16 +33,41 @@ function AppRouter() {
   );
 }
 
+/**
+ * Nothing renders until we know who's here. There is no partially-signed-in
+ * state and no public page — every view in this app is either about our
+ * positions or about our own behaviour.
+ */
+function Gate() {
+  const { state } = useAuth();
+
+  if (state.status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+        Checking your sign-in…
+      </div>
+    );
+  }
+
+  if (state.status !== "signed-in") return <SignIn />;
+
+  return (
+    <Router hook={useHashLocation}>
+      <AppRouter />
+    </Router>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router hook={useHashLocation}>
-            <AppRouter />
-          </Router>
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Gate />
+          </TooltipProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

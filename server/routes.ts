@@ -27,6 +27,8 @@ import {
 } from "./ingestion/connectors";
 import { syncEdgarFilings } from "./ingestion/edgar";
 import { syncPatents, MissingUsptoKeyError } from "./ingestion/patents";
+import { requireUser } from "./auth";
+import { shortName } from "@shared/team";
 
 // Shared secret for the /api/admin/ingest push endpoint. Connector calls (external-tool CLI) don't
 // work inside a published site's production sandbox, so a scheduled task running outside the site
@@ -42,7 +44,11 @@ if (!INGEST_ADMIN_TOKEN) {
   );
 }
 
-function requireAdminToken(req: Request, res: Response, next: NextFunction) {
+// Exported so the scheduled watcher jobs (server/watcher/) can sit behind the
+// same door. A cron runner has no Google account and cannot sign in, so this
+// stays the way non-human callers authenticate. It is NOT a substitute for
+// `requireUser` on anything a person does.
+export function requireAdminToken(req: Request, res: Response, next: NextFunction) {
   if (!INGEST_ADMIN_TOKEN || req.header("x-admin-token") !== INGEST_ADMIN_TOKEN) {
     return res.status(401).json({ error: "Invalid or missing x-admin-token header" });
   }
@@ -50,6 +56,18 @@ function requireAdminToken(req: Request, res: Response, next: NextFunction) {
 }
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
+  // ── Who am I ──────────────────────────────────────────────────────────
+  // The browser already knows this from its own Supabase session; the point of
+  // asking the server is that this is the answer that counts. If this 401s,
+  // every other human-facing endpoint will too.
+  app.get("/api/me", requireUser, async (req, res) => {
+    res.json({
+      id: req.user!.id,
+      email: req.user!.email,
+      name: shortName(req.user!.email),
+    });
+  });
+
   // ── Admin / seed ──────────────────────────────────────────────────────
   app.post("/api/admin/seed", requireAdminToken, async (_req, res, next) => {
     try {

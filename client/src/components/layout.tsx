@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, testId: "dashboard" },
@@ -82,9 +83,33 @@ function NavContent() {
           );
         })}
       </nav>
+      <SignedInAs />
       <div className="border-t border-sidebar-border px-4 py-3 text-[11px] leading-snug text-sidebar-foreground/50">
         Not a stock-tip generator. Not trade-execution software. Evidence-weighing tool only.
       </div>
+    </div>
+  );
+}
+
+function SignedInAs() {
+  const { user, signOut } = useAuth();
+  if (!user) return null;
+  return (
+    <div className="flex items-center justify-between gap-2 border-t border-sidebar-border px-4 py-3">
+      <span
+        className="truncate text-xs text-sidebar-foreground/70"
+        title={user.email}
+        data-testid="text-signed-in-as"
+      >
+        {user.name}
+      </span>
+      <button
+        onClick={signOut}
+        className="shrink-0 text-xs text-sidebar-foreground/50 underline-offset-2 hover:text-sidebar-foreground hover:underline"
+        data-testid="button-sign-out"
+      >
+        Sign out
+      </button>
     </div>
   );
 }

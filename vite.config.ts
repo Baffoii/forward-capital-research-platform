@@ -12,6 +12,10 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
+  // Vite reads .env from `root` by default, which would mean a second .env
+  // file inside client/. The server already reads the repo-root .env via
+  // dotenv, so point Vite at the same file — one place to configure the app.
+  envDir: import.meta.dirname,
   base: "./",
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
