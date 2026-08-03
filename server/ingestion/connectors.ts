@@ -44,6 +44,98 @@ async function markSynced(sourceIdentifier: string) {
   if (source) await storage.updateSource(source.id, { lastSyncedAt: new Date().toISOString() });
 }
 
+// ── Market-snapshot extraction ───────────────────────────────────────────
+// The connector payload is stored verbatim on the signal for provenance, and
+// the numbers the UI reads are ALSO written to company_quotes /
+// company_analyst_consensus so the watchlist can query them in Postgres
+// instead of parsing JSON in the browser. These readers stay deliberately
+// forgiving: payload shapes vary by connector version, and a snapshot that
+// can't be parsed must never break the signal write that carries the record.
+
+function pick(obj: any, ...keys: string[]): any {
+  if (!obj || typeof obj !== "object") return undefined;
+  for (const key of keys) {
+    if (obj[key] !== undefined && obj[key] !== null) return obj[key];
+  }
+  return undefined;
+}
+
+/** Digs the first object carrying `marker` out of a connector response. */
+function unwrap(result: any, marker: string): any {
+  if (!result || typeof result !== "object") return null;
+  if (Array.isArray(result)) {
+    for (const entry of result) {
+      const found = unwrap(entry, marker);
+      if (found) return found;
+    }
+    return null;
+  }
+  if (result[marker] !== undefined && result[marker] !== null) return result;
+  for (const value of Object.values(result)) {
+    if (value && typeof value === "object") {
+      const found = unwrap(value, marker);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function num(value: any): number | null {
+  const n = typeof value === "string" ? Number(value.replace(/[$,%\s,]/g, "")) : Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+async function recordQuoteSnapshot(companyId: number, sourceId: number, result: any) {
+  const q = unwrap(result, "price") ?? unwrap(result, "marketCap") ?? unwrap(result, "market_cap");
+  if (!q) return;
+  const price = num(pick(q, "price", "last", "close"));
+  if (price === null) return;
+
+  await storage.upsertCompanyQuote({
+    companyId,
+    sourceId,
+    price,
+    change: num(pick(q, "change", "priceChange")),
+    changesPercentage: num(pick(q, "changesPercentage", "changes_percentage", "changePercent", "percentChange")),
+    marketCap: num(pick(q, "marketCap", "market_cap")),
+    pe: num(pick(q, "pe", "peRatio", "pe_ratio")),
+    volume: num(pick(q, "volume")),
+    yearLow: num(pick(q, "yearLow", "year_low", "fiftyTwoWeekLow")),
+    yearHigh: num(pick(q, "yearHigh", "year_high", "fiftyTwoWeekHigh")),
+    asOf: String(pick(q, "as_of", "asOf", "timestamp") ?? new Date().toISOString()),
+  });
+}
+
+async function recordConsensusSnapshot(companyId: number, sourceId: number, result: any) {
+  const c =
+    unwrap(result, "avg_price_target") ??
+    unwrap(result, "avgPriceTarget") ??
+    unwrap(result, "total_ratings") ??
+    unwrap(result, "consensus");
+  const consensus = c?.consensus && typeof c.consensus === "object" ? c.consensus : c;
+  if (!consensus) return;
+
+  const totalRatings = num(pick(consensus, "total_ratings", "totalRatings", "analystCount"));
+  const avgTarget = num(pick(consensus, "avg_price_target", "avgPriceTarget", "averagePriceTarget"));
+  if (totalRatings === null && avgTarget === null) return;
+
+  await storage.upsertCompanyConsensus({
+    companyId,
+    sourceId,
+    rating: pick(consensus, "rating", "consensusRating") ?? null,
+    totalRatings,
+    bullishPct: num(pick(consensus, "bullish_pct", "bullishPct")),
+    neutralPct: num(pick(consensus, "neutral_pct", "neutralPct")),
+    bearishPct: num(pick(consensus, "bearish_pct", "bearishPct")),
+    avgPriceTarget: avgTarget,
+    medianPriceTarget: num(pick(consensus, "median_price_target", "medianPriceTarget")),
+    highPriceTarget: num(pick(consensus, "high_price_target", "highPriceTarget")),
+    lowPriceTarget: num(pick(consensus, "low_price_target", "lowPriceTarget")),
+    note: pick(consensus, "note") ?? null,
+    asOf: String(pick(consensus, "as_of", "asOf") ?? new Date().toISOString()),
+  });
+}
+
 /**
  * Pure creation functions — take an ALREADY-FETCHED connector payload and write it to the DB.
  * Split out from the sync* functions below so a remote push (e.g. from a scheduled task running
@@ -76,6 +168,13 @@ export async function createQuoteSignal(companyId: number, ticker: string, resul
     ingestionMethod: "live_connector",
     createdAt: now,
   });
+  // Provenance stays on the signal; the numbers also land in company_quotes.
+  // A malformed payload must not lose the signal that was just written.
+  try {
+    await recordQuoteSnapshot(companyId, sourceId, result);
+  } catch (e: any) {
+    console.warn(`[connectors] quote snapshot skipped for ${ticker}: ${e?.message ?? e}`);
+  }
   await storage.createAuditLog({
     eventType: "ingestion",
     description: `Synced live quote for ${ticker} via finance connector`,
@@ -186,6 +285,11 @@ export async function createAnalystSignal(companyId: number, ticker: string, res
     ingestionMethod: "live_connector",
     createdAt: now,
   });
+  try {
+    await recordConsensusSnapshot(companyId, sourceId, result);
+  } catch (e: any) {
+    console.warn(`[connectors] consensus snapshot skipped for ${ticker}: ${e?.message ?? e}`);
+  }
   await storage.createAuditLog({
     eventType: "ingestion",
     description: `Synced analyst research for ${ticker} via finance connector`,

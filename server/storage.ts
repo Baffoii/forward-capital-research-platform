@@ -4,6 +4,9 @@ import type {
   Source, InsertSource, Signal, InsertSignal, SignalScore, InsertSignalScore,
   ResearchInboxItem, InsertResearchInboxItem, WatchlistItem, InsertWatchlistItem,
   AuditLog, InsertAuditLog, Setting, InsertSetting, EdgarTickerCikCache, InsertEdgarTickerCikCache,
+  ThesisFalsifier, InsertThesisFalsifier, ThesisSegment, InsertThesisSegment,
+  ThesisMilestone, InsertThesisMilestone, ThesisConfidenceHistory, InsertThesisConfidenceHistory,
+  CompanyQuote, InsertCompanyQuote, CompanyAnalystConsensus, InsertCompanyAnalystConsensus,
 } from "@shared/schema";
 import { supabase, objToSnake, rowToCamel, rowsToCamel, throwIfError } from "./supabase";
 
@@ -36,6 +39,30 @@ export interface IStorage {
   // thesis_assumptions
   listAssumptions(thesisId: number): Promise<ThesisAssumption[]>;
   createAssumption(a: InsertThesisAssumption): Promise<ThesisAssumption>;
+
+  // thesis_falsifiers
+  listFalsifiers(thesisId: number): Promise<ThesisFalsifier[]>;
+  createFalsifier(f: InsertThesisFalsifier): Promise<ThesisFalsifier>;
+
+  // thesis_segments
+  listThesisSegments(thesisId: number): Promise<ThesisSegment[]>;
+  createThesisSegment(s: InsertThesisSegment): Promise<ThesisSegment>;
+
+  // thesis_milestones
+  listMilestones(thesisId: number): Promise<ThesisMilestone[]>;
+  createMilestone(m: InsertThesisMilestone): Promise<ThesisMilestone>;
+
+  // thesis_confidence_history
+  listConfidenceHistory(thesisId: number, limit?: number): Promise<ThesisConfidenceHistory[]>;
+  createConfidenceHistory(h: InsertThesisConfidenceHistory): Promise<ThesisConfidenceHistory>;
+
+  // company_quotes / company_analyst_consensus
+  listCompanyQuotes(): Promise<CompanyQuote[]>;
+  getCompanyQuote(companyId: number): Promise<CompanyQuote | undefined>;
+  upsertCompanyQuote(q: InsertCompanyQuote): Promise<CompanyQuote>;
+  listCompanyConsensus(): Promise<CompanyAnalystConsensus[]>;
+  getCompanyConsensus(companyId: number): Promise<CompanyAnalystConsensus | undefined>;
+  upsertCompanyConsensus(c: InsertCompanyAnalystConsensus): Promise<CompanyAnalystConsensus>;
 
   // thesis_companies
   listThesisCompanies(thesisId: number): Promise<ThesisCompany[]>;
@@ -161,6 +188,115 @@ export class DatabaseStorage implements IStorage {
     const { data, error } = await supabase.from("thesis_assumptions").insert(objToSnake(a)).select().single();
     throwIfError(error, "createAssumption");
     return rowToCamel<ThesisAssumption>(data)!;
+  }
+
+  async listFalsifiers(thesisId: number) {
+    const { data, error } = await supabase
+      .from("thesis_falsifiers")
+      .select("*")
+      .eq("thesis_id", thesisId)
+      .order("sort_order", { ascending: true });
+    throwIfError(error, "listFalsifiers");
+    return rowsToCamel<ThesisFalsifier>(data);
+  }
+  async createFalsifier(f: InsertThesisFalsifier) {
+    const { data, error } = await supabase.from("thesis_falsifiers").insert(objToSnake(f)).select().single();
+    throwIfError(error, "createFalsifier");
+    return rowToCamel<ThesisFalsifier>(data)!;
+  }
+
+  async listThesisSegments(thesisId: number) {
+    const { data, error } = await supabase
+      .from("thesis_segments")
+      .select("*")
+      .eq("thesis_id", thesisId)
+      .order("sort_order", { ascending: true });
+    throwIfError(error, "listThesisSegments");
+    return rowsToCamel<ThesisSegment>(data);
+  }
+  async createThesisSegment(s: InsertThesisSegment) {
+    const { data, error } = await supabase.from("thesis_segments").insert(objToSnake(s)).select().single();
+    throwIfError(error, "createThesisSegment");
+    return rowToCamel<ThesisSegment>(data)!;
+  }
+
+  async listMilestones(thesisId: number) {
+    const { data, error } = await supabase
+      .from("thesis_milestones")
+      .select("*")
+      .eq("thesis_id", thesisId)
+      .order("sort_order", { ascending: true });
+    throwIfError(error, "listMilestones");
+    return rowsToCamel<ThesisMilestone>(data);
+  }
+  async createMilestone(m: InsertThesisMilestone) {
+    const { data, error } = await supabase.from("thesis_milestones").insert(objToSnake(m)).select().single();
+    throwIfError(error, "createMilestone");
+    return rowToCamel<ThesisMilestone>(data)!;
+  }
+
+  async listConfidenceHistory(thesisId: number, limit = 52) {
+    // Newest first out of Postgres so the limit takes the most recent rows; the
+    // route re-sorts oldest-first for the chart.
+    const { data, error } = await supabase
+      .from("thesis_confidence_history")
+      .select("*")
+      .eq("thesis_id", thesisId)
+      .order("computed_at", { ascending: false })
+      .limit(limit);
+    throwIfError(error, "listConfidenceHistory");
+    return rowsToCamel<ThesisConfidenceHistory>(data);
+  }
+  async createConfidenceHistory(h: InsertThesisConfidenceHistory) {
+    const { data, error } = await supabase.from("thesis_confidence_history").insert(objToSnake(h)).select().single();
+    throwIfError(error, "createConfidenceHistory");
+    return rowToCamel<ThesisConfidenceHistory>(data)!;
+  }
+
+  async listCompanyQuotes() {
+    const { data, error } = await supabase.from("company_quotes").select("*");
+    throwIfError(error, "listCompanyQuotes");
+    return rowsToCamel<CompanyQuote>(data);
+  }
+  async getCompanyQuote(companyId: number) {
+    const { data, error } = await supabase.from("company_quotes").select("*").eq("company_id", companyId).maybeSingle();
+    throwIfError(error, "getCompanyQuote");
+    return rowToCamel<CompanyQuote>(data);
+  }
+  async upsertCompanyQuote(q: InsertCompanyQuote) {
+    // company_id carries a UNIQUE constraint, so this refreshes the snapshot in
+    // place rather than accumulating one row per sync.
+    const { data, error } = await supabase
+      .from("company_quotes")
+      .upsert(objToSnake(q), { onConflict: "company_id" })
+      .select()
+      .single();
+    throwIfError(error, "upsertCompanyQuote");
+    return rowToCamel<CompanyQuote>(data)!;
+  }
+
+  async listCompanyConsensus() {
+    const { data, error } = await supabase.from("company_analyst_consensus").select("*");
+    throwIfError(error, "listCompanyConsensus");
+    return rowsToCamel<CompanyAnalystConsensus>(data);
+  }
+  async getCompanyConsensus(companyId: number) {
+    const { data, error } = await supabase
+      .from("company_analyst_consensus")
+      .select("*")
+      .eq("company_id", companyId)
+      .maybeSingle();
+    throwIfError(error, "getCompanyConsensus");
+    return rowToCamel<CompanyAnalystConsensus>(data);
+  }
+  async upsertCompanyConsensus(c: InsertCompanyAnalystConsensus) {
+    const { data, error } = await supabase
+      .from("company_analyst_consensus")
+      .upsert(objToSnake(c), { onConflict: "company_id" })
+      .select()
+      .single();
+    throwIfError(error, "upsertCompanyConsensus");
+    return rowToCamel<CompanyAnalystConsensus>(data)!;
   }
 
   async listThesisCompanies(thesisId: number) {

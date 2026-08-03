@@ -81,9 +81,72 @@ export default {
           busy: "rgb(239 68 68)",
           offline: "rgb(156 163 175)",
         },
+
+        // Redesign palette. `fc-` prefixed so it can never collide with a
+        // built-in Tailwind scale. These resolve through the --fc-* custom
+        // properties in index.css, so they follow light/dark automatically.
+        // Authored as hex rather than HSL triplets, so no /<alpha-value>
+        // support — reach for an explicit rgba() token when you need one.
+        "fc-paper": { DEFAULT: "var(--fc-paper)", sunk: "var(--fc-paper-sunk)" },
+        "fc-surface": { DEFAULT: "var(--fc-surface)", sunk: "var(--fc-surface-sunk)" },
+        "fc-rule": {
+          DEFAULT: "var(--fc-rule)",
+          soft: "var(--fc-rule-soft)",
+          strong: "var(--fc-rule-strong)",
+        },
+        "fc-chip": "var(--fc-chip)",
+        "fc-ink": {
+          DEFAULT: "var(--fc-ink)",
+          "2": "var(--fc-ink-2)",
+          "3": "var(--fc-ink-3)",
+          "4": "var(--fc-ink-4)",
+          "5": "var(--fc-ink-5)",
+        },
+        "fc-teal": {
+          DEFAULT: "var(--fc-teal)",
+          deep: "var(--fc-teal-deep)",
+          ink: "var(--fc-teal-ink)",
+          wash: "var(--fc-teal-wash)",
+          line: "var(--fc-teal-line)",
+          panel: "var(--fc-teal-panel)",
+        },
+        "fc-forest": {
+          DEFAULT: "var(--fc-forest)",
+          bright: "var(--fc-forest-bright)",
+          wash: "var(--fc-forest-wash)",
+          line: "var(--fc-forest-line)",
+        },
+        "fc-oxide": {
+          DEFAULT: "var(--fc-oxide)",
+          bright: "var(--fc-oxide-bright)",
+          wash: "var(--fc-oxide-wash)",
+          line: "var(--fc-oxide-line)",
+          panel: "var(--fc-oxide-panel)",
+          "panel-line": "var(--fc-oxide-panel-line)",
+          border: "var(--fc-oxide-border)",
+        },
+        "fc-ochre": {
+          DEFAULT: "var(--fc-amber)",
+          deep: "var(--fc-amber-deep)",
+          wash: "var(--fc-amber-wash)",
+          line: "var(--fc-amber-line)",
+          panel: "var(--fc-amber-panel)",
+        },
+        "fc-azure": {
+          DEFAULT: "var(--fc-azure)",
+          bright: "var(--fc-azure-bright)",
+          wash: "var(--fc-azure-wash)",
+          line: "var(--fc-azure-line)",
+        },
+        "fc-iris": {
+          DEFAULT: "var(--fc-violet)",
+          wash: "var(--fc-violet-wash)",
+          line: "var(--fc-violet-line)",
+        },
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
+        display: ["var(--font-display)"],
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
       },

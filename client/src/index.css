@@ -2,50 +2,118 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE — Forward Capital: precise slate/navy neutrals, restrained teal accent */
+/* ─────────────────────────────────────────────────────────────────────────
+   Forward Capital — warm paper palette.
+
+   Two layers of tokens live here:
+
+   1. `--fc-*` are the redesign's own semantic colours, authored as hex so
+      page code can use them directly (arbitrary Tailwind values, inline
+      styles, SVG fills). Paper ground, ink, hairline rules, one deepened
+      teal, and a signed evidence pair — inked forest for confirming, oxide
+      for contradicting — rather than default SaaS green/red.
+   2. The shadcn/Tailwind tokens below are HSL triplets mapped onto the same
+      colours, so every primitive (Select, Dialog, Toast…) inherits the
+      palette without being restyled one by one.
+
+   Both layers are defined for light and dark.
+   ───────────────────────────────────────────────────────────────────────── */
 :root {
-  --button-outline: rgba(15, 23, 42, 0.1);
-  --badge-outline: rgba(15, 23, 42, 0.05);
+  /* ── Layer 1: redesign semantics ── */
+  --fc-paper: #f7f6f3; /* page ground */
+  --fc-paper-sunk: #f2f0ea; /* sidebar, hero panel */
+  --fc-surface: #ffffff; /* cards */
+  --fc-surface-sunk: #faf9f6; /* table header strips, card footers */
+  --fc-rule: #e8e6e0; /* card border */
+  --fc-rule-soft: #efece6; /* row divider inside a card */
+  --fc-rule-strong: #dbd8d0; /* input / control border */
+  --fc-chip: #eeece6; /* neutral chip fill */
+
+  --fc-ink: #1a1a17;
+  --fc-ink-2: #3d3c36;
+  --fc-ink-3: #6b6a63;
+  --fc-ink-4: #9a988f;
+  --fc-ink-5: #c9c6bd;
+
+  --fc-teal: #157f74;
+  --fc-teal-deep: #0f5a52;
+  --fc-teal-ink: #0f4a44;
+  --fc-teal-wash: #e6f1ef;
+  --fc-teal-line: #c8e3de;
+  --fc-teal-panel: #eef3f2;
+
+  --fc-forest: #0f7a52; /* confirming — text weight */
+  --fc-forest-bright: #1f9d6b; /* confirming — bars, dots, numerals */
+  --fc-forest-wash: #e8f5ee;
+  --fc-forest-line: #c2e3d0;
+
+  --fc-oxide: #b03024; /* contradicting — text weight */
+  --fc-oxide-bright: #d1493a; /* contradicting — bars, numerals */
+  --fc-oxide-wash: #fbecea;
+  --fc-oxide-line: #f2cdc7;
+  --fc-oxide-panel: #fdf4f2;
+  --fc-oxide-panel-line: #f0d5d0;
+  --fc-oxide-border: #e8bcb4;
+
+  --fc-amber: #b8830f; /* research gap */
+  --fc-amber-deep: #8a5f0f;
+  --fc-amber-wash: #fdf6e7;
+  --fc-amber-line: #ecd9ab;
+  --fc-amber-panel: #fffbf2;
+
+  --fc-azure: #1f6f9c; /* corroborated */
+  --fc-azure-bright: #0ea5e9;
+  --fc-azure-wash: #e9f2f8;
+  --fc-azure-line: #c5dcea;
+
+  --fc-violet: #6b4fbb; /* deduplicated / AI-derived */
+  --fc-violet-wash: #f0edfa;
+  --fc-violet-line: #d6cdf0;
+
+  /* ── Layer 2: shadcn / Tailwind tokens ── */
+  --button-outline: rgba(26, 26, 23, 0.1);
+  --badge-outline: rgba(26, 26, 23, 0.05);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(15, 23, 42, 0.03);
-  --elevate-2: rgba(15, 23, 42, 0.08);
-  --background: 210 25% 98%;
-  --foreground: 217 33% 12%;
-  --border: 214 20% 88%;
-  --card: 210 20% 100%;
-  --card-foreground: 217 33% 12%;
-  --card-border: 214 20% 91%;
-  --sidebar: 217 33% 14%;
-  --sidebar-foreground: 210 20% 92%;
-  --sidebar-border: 217 28% 20%;
-  --sidebar-primary: 175 60% 38%;
-  --sidebar-primary-foreground: 210 20% 98%;
-  --sidebar-accent: 217 28% 20%;
-  --sidebar-accent-foreground: 210 20% 96%;
-  --sidebar-ring: 175 60% 38%;
-  --popover: 210 20% 100%;
-  --popover-foreground: 217 33% 12%;
-  --popover-border: 214 20% 91%;
-  --primary: 175 65% 32%;
-  --primary-foreground: 210 20% 98%;
-  --secondary: 214 24% 93%;
-  --secondary-foreground: 217 33% 16%;
-  --muted: 214 22% 94%;
-  --muted-foreground: 215 16% 42%;
-  --accent: 175 45% 92%;
-  --accent-foreground: 175 65% 22%;
-  --destructive: 6 72% 46%;
-  --destructive-foreground: 0 0% 98%;
-  --input: 214 20% 82%;
-  --ring: 175 65% 32%;
-  --chart-1: 175 65% 38%;
-  --chart-2: 217 60% 50%;
-  --chart-3: 38 80% 50%;
-  --chart-4: 6 65% 52%;
-  --chart-5: 262 45% 55%;
-  --font-sans: 'General Sans', 'Geist', system-ui, sans-serif;
+  --elevate-1: rgba(26, 26, 23, 0.03);
+  --elevate-2: rgba(26, 26, 23, 0.07);
+  --background: 45 20% 96%;
+  --foreground: 60 6% 10%;
+  --border: 45 15% 89%;
+  --card: 0 0% 100%;
+  --card-foreground: 60 6% 10%;
+  --card-border: 45 15% 89%;
+  --sidebar: 45 24% 93%;
+  --sidebar-foreground: 60 6% 10%;
+  --sidebar-border: 45 15% 89%;
+  --sidebar-primary: 174 72% 29%;
+  --sidebar-primary-foreground: 45 29% 97%;
+  --sidebar-accent: 169 28% 92%;
+  --sidebar-accent-foreground: 174 71% 21%;
+  --sidebar-ring: 174 72% 29%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 60 6% 10%;
+  --popover-border: 45 15% 89%;
+  --primary: 174 72% 29%;
+  --primary-foreground: 45 29% 97%;
+  --secondary: 45 19% 92%;
+  --secondary-foreground: 51 6% 23%;
+  --muted: 45 19% 92%;
+  --muted-foreground: 53 4% 40%;
+  --accent: 169 28% 92%;
+  --accent-foreground: 174 71% 21%;
+  --destructive: 5 66% 42%;
+  --destructive-foreground: 45 29% 97%;
+  --input: 44 13% 84%;
+  --ring: 174 72% 29%;
+  --chart-1: 174 72% 29%;
+  --chart-2: 156 67% 37%;
+  --chart-3: 199 89% 48%;
+  --chart-4: 40 85% 39%;
+  --chart-5: 258 42% 52%;
+  --font-sans: 'Public Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Libre Franklin', 'Public Sans', system-ui, sans-serif;
   --font-serif: Georgia, serif;
-  --font-mono: 'JetBrains Mono', 'Geist Mono', Menlo, monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
   --radius: 0.5rem;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
@@ -102,45 +170,97 @@
 }
 
 .dark {
-  --button-outline: rgba(255, 255, 255, 0.1);
-  --badge-outline: rgba(255, 255, 255, 0.05);
+  /* Warm-ink counterpart. Same hue family as the paper palette, inverted —
+     so a dark-OS visitor gets the redesign rather than the old slate/navy. */
+  --fc-paper: #14130f;
+  --fc-paper-sunk: #1b1a15;
+  --fc-surface: #1c1b16;
+  --fc-surface-sunk: #211f1a;
+  --fc-rule: #302e27;
+  --fc-rule-soft: #292720;
+  --fc-rule-strong: #3b382f;
+  --fc-chip: #2a2822;
+
+  --fc-ink: #f2f0ea;
+  --fc-ink-2: #d3d0c6;
+  --fc-ink-3: #a3a094;
+  --fc-ink-4: #7d7a6f;
+  --fc-ink-5: #57544b;
+
+  --fc-teal: #2fa294;
+  --fc-teal-deep: #7fd3c8;
+  --fc-teal-ink: #0f4a44;
+  --fc-teal-wash: #16302d;
+  --fc-teal-line: #245a53;
+  --fc-teal-panel: #172a28;
+
+  --fc-forest: #35b57f;
+  --fc-forest-bright: #35b57f;
+  --fc-forest-wash: #14301f;
+  --fc-forest-line: #26543a;
+
+  --fc-oxide: #e2705f;
+  --fc-oxide-bright: #e2705f;
+  --fc-oxide-wash: #331613;
+  --fc-oxide-line: #5c2a23;
+  --fc-oxide-panel: #2a1512;
+  --fc-oxide-panel-line: #4a221c;
+  --fc-oxide-border: #5c2a23;
+
+  --fc-amber: #d9a53a;
+  --fc-amber-deep: #e8bf6d;
+  --fc-amber-wash: #2e2412;
+  --fc-amber-line: #55411c;
+  --fc-amber-panel: #241d10;
+
+  --fc-azure: #63b3e0;
+  --fc-azure-bright: #38a8dd;
+  --fc-azure-wash: #15252f;
+  --fc-azure-line: #274b60;
+
+  --fc-violet: #a794e0;
+  --fc-violet-wash: #221c33;
+  --fc-violet-line: #3e3459;
+
+  --button-outline: rgba(242, 240, 234, 0.1);
+  --badge-outline: rgba(242, 240, 234, 0.05);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255, 255, 255, 0.04);
-  --elevate-2: rgba(255, 255, 255, 0.09);
-  --background: 222 35% 7%;
-  --foreground: 210 20% 92%;
-  --border: 217 24% 18%;
-  --card: 220 30% 10%;
-  --card-foreground: 210 20% 92%;
-  --card-border: 217 24% 16%;
-  --sidebar: 224 35% 6%;
-  --sidebar-foreground: 210 20% 90%;
-  --sidebar-border: 217 28% 14%;
-  --sidebar-primary: 175 55% 45%;
-  --sidebar-primary-foreground: 220 30% 8%;
-  --sidebar-accent: 217 24% 16%;
-  --sidebar-accent-foreground: 210 20% 92%;
-  --sidebar-ring: 175 55% 45%;
-  --popover: 220 30% 11%;
-  --popover-foreground: 210 20% 92%;
-  --popover-border: 217 24% 18%;
-  --primary: 175 55% 45%;
-  --primary-foreground: 220 30% 8%;
-  --secondary: 217 24% 16%;
-  --secondary-foreground: 210 20% 92%;
-  --muted: 217 22% 15%;
-  --muted-foreground: 215 14% 62%;
-  --accent: 175 30% 16%;
-  --accent-foreground: 175 50% 75%;
-  --destructive: 6 70% 55%;
-  --destructive-foreground: 0 0% 98%;
-  --input: 217 22% 22%;
-  --ring: 175 55% 45%;
-  --chart-1: 175 55% 50%;
-  --chart-2: 217 70% 65%;
-  --chart-3: 38 80% 58%;
-  --chart-4: 6 65% 60%;
-  --chart-5: 262 55% 68%;
+  --elevate-1: rgba(242, 240, 234, 0.04);
+  --elevate-2: rgba(242, 240, 234, 0.09);
+  --background: 48 14% 7%;
+  --foreground: 45 24% 93%;
+  --border: 47 10% 17%;
+  --card: 50 12% 10%;
+  --card-foreground: 45 24% 93%;
+  --card-border: 47 10% 17%;
+  --sidebar: 50 13% 9%;
+  --sidebar-foreground: 45 24% 93%;
+  --sidebar-border: 47 10% 17%;
+  --sidebar-primary: 173 55% 41%;
+  --sidebar-primary-foreground: 50 12% 10%;
+  --sidebar-accent: 173 37% 14%;
+  --sidebar-accent-foreground: 172 49% 66%;
+  --sidebar-ring: 173 55% 41%;
+  --popover: 50 12% 10%;
+  --popover-foreground: 45 24% 93%;
+  --popover-border: 47 10% 17%;
+  --primary: 173 55% 41%;
+  --primary-foreground: 50 12% 10%;
+  --secondary: 45 11% 15%;
+  --secondary-foreground: 45 24% 93%;
+  --muted: 45 11% 15%;
+  --muted-foreground: 48 8% 61%;
+  --accent: 173 37% 14%;
+  --accent-foreground: 172 49% 66%;
+  --destructive: 8 69% 63%;
+  --destructive-foreground: 50 12% 10%;
+  --input: 45 11% 21%;
+  --ring: 173 55% 41%;
+  --chart-1: 173 55% 41%;
+  --chart-2: 156 55% 46%;
+  --chart-3: 199 71% 55%;
+  --chart-4: 40 68% 54%;
+  --chart-5: 258 55% 73%;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
   --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);
@@ -200,6 +320,14 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  /* Headings and other display type run in Libre Franklin; body copy stays in
+     Public Sans. Numbers are always monospaced so columns line up. */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
   }
 }
 

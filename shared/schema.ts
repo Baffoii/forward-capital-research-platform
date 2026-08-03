@@ -32,6 +32,11 @@ export const theses = sqliteTable("theses", {
   title: text("title").notNull(),
   summary: text("summary").notNull(),
   prediction: text("prediction").notNull(),
+  author: text("author"),
+  // The window the prediction resolves in. Stored rather than parsed out of the
+  // prediction sentence, so the countdown tracks a real date the author set.
+  predictionWindowStart: text("prediction_window_start"),
+  predictionWindowEnd: text("prediction_window_end"),
   status: text("status").notNull().default("active"), // active | archived
   confidenceScore: real("confidence_score"), // computed, not hand-set
   createdAt: text("created_at").notNull().default(""),
@@ -53,11 +58,82 @@ export const thesisAssumptions = sqliteTable("thesis_assumptions", {
   thesisId: integer("thesis_id").notNull(),
   text: text("text").notNull(),
   importance: text("importance").notNull(), // high | medium | low
+  // JSON array of signal_category values this assumption accumulates evidence
+  // from, e.g. ["patent_filing"]. NULL means the assumption is not tracked by
+  // category at all — the ledger says so rather than reporting a false zero.
+  // An empty array means it IS tracked but no category exists for it yet.
+  signalCategories: text("signal_categories"),
 });
 
 export const insertThesisAssumptionSchema = createInsertSchema(thesisAssumptions).omit({ id: true });
 export type InsertThesisAssumption = z.infer<typeof insertThesisAssumptionSchema>;
 export type ThesisAssumption = typeof thesisAssumptions.$inferSelect;
+
+// ─────────────────────────────────────────────────────────────────────────
+// thesis_falsifiers — what would prove the thesis wrong
+// ─────────────────────────────────────────────────────────────────────────
+export const thesisFalsifiers = sqliteTable("thesis_falsifiers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  thesisId: integer("thesis_id").notNull(),
+  text: text("text").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const insertThesisFalsifierSchema = createInsertSchema(thesisFalsifiers).omit({ id: true });
+export type InsertThesisFalsifier = z.infer<typeof insertThesisFalsifierSchema>;
+export type ThesisFalsifier = typeof thesisFalsifiers.$inferSelect;
+
+// ─────────────────────────────────────────────────────────────────────────
+// thesis_segments — the legs the thesis rests on. A leg with no companies is
+// a research gap the UI must hold open, not an empty folder to hide.
+// ─────────────────────────────────────────────────────────────────────────
+export const thesisSegments = sqliteTable("thesis_segments", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  thesisId: integer("thesis_id").notNull(),
+  name: text("name").notNull(),
+  note: text("note").notNull().default(""),
+  isThesisLeg: integer("is_thesis_leg", { mode: "boolean" }).notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const insertThesisSegmentSchema = createInsertSchema(thesisSegments).omit({ id: true });
+export type InsertThesisSegment = z.infer<typeof insertThesisSegmentSchema>;
+export type ThesisSegment = typeof thesisSegments.$inferSelect;
+
+// ─────────────────────────────────────────────────────────────────────────
+// thesis_milestones — dated (or deliberately undated) checkpoints inside the
+// prediction window
+// ─────────────────────────────────────────────────────────────────────────
+export const thesisMilestones = sqliteTable("thesis_milestones", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  thesisId: integer("thesis_id").notNull(),
+  title: text("title").notNull(),
+  detail: text("detail").notNull().default(""),
+  dueDate: text("due_date"), // NULL is meaningful: "no date — blocking the core bet"
+  status: text("status").notNull().default("scheduled"), // scheduled | blocking | closes | done
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const insertThesisMilestoneSchema = createInsertSchema(thesisMilestones).omit({ id: true });
+export type InsertThesisMilestone = z.infer<typeof insertThesisMilestoneSchema>;
+export type ThesisMilestone = typeof thesisMilestones.$inferSelect;
+
+// ─────────────────────────────────────────────────────────────────────────
+// thesis_confidence_history — one row per recompute, so the trend line is a
+// record of what the score actually read rather than a reconstruction
+// ─────────────────────────────────────────────────────────────────────────
+export const thesisConfidenceHistory = sqliteTable("thesis_confidence_history", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  thesisId: integer("thesis_id").notNull(),
+  confidence: real("confidence").notNull(),
+  gauge: integer("gauge").notNull(),
+  signalCount: integer("signal_count").notNull().default(0),
+  computedAt: text("computed_at").notNull(),
+});
+
+export const insertThesisConfidenceHistorySchema = createInsertSchema(thesisConfidenceHistory).omit({ id: true });
+export type InsertThesisConfidenceHistory = z.infer<typeof insertThesisConfidenceHistorySchema>;
+export type ThesisConfidenceHistory = typeof thesisConfidenceHistory.$inferSelect;
 
 // ─────────────────────────────────────────────────────────────────────────
 // thesis_companies
@@ -85,6 +161,10 @@ export const sources = sqliteTable("sources", {
   reliabilityScore: real("reliability_score").notNull().default(0.5),
   url: text("url"),
   lastSyncedAt: text("last_synced_at"),
+  // Why this source carries the weight it carries — shown next to the weight.
+  description: text("description"),
+  status: text("status").notNull().default("connected"), // connected | needs_key | not_connected
+  requiresKey: integer("requires_key", { mode: "boolean" }).notNull().default(false),
 });
 
 export const insertSourceSchema = createInsertSchema(sources).omit({ id: true });
@@ -137,6 +217,54 @@ export const signalScores = sqliteTable("signal_scores", {
 export const insertSignalScoreSchema = createInsertSchema(signalScores).omit({ id: true });
 export type InsertSignalScore = z.infer<typeof insertSignalScoreSchema>;
 export type SignalScore = typeof signalScores.$inferSelect;
+
+// ─────────────────────────────────────────────────────────────────────────
+// company_quotes — latest market snapshot per company. Denormalised out of
+// signals.raw_payload so the watchlist can read prices without parsing JSON
+// on the client. One row per company; refreshed in place on each sync.
+// ─────────────────────────────────────────────────────────────────────────
+export const companyQuotes = sqliteTable("company_quotes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  companyId: integer("company_id").notNull().unique(),
+  sourceId: integer("source_id"),
+  price: real("price"),
+  change: real("change"),
+  changesPercentage: real("changes_percentage"),
+  marketCap: real("market_cap"),
+  pe: real("pe"),
+  volume: real("volume"),
+  yearLow: real("year_low"),
+  yearHigh: real("year_high"),
+  asOf: text("as_of").notNull(),
+});
+
+export const insertCompanyQuoteSchema = createInsertSchema(companyQuotes).omit({ id: true });
+export type InsertCompanyQuote = z.infer<typeof insertCompanyQuoteSchema>;
+export type CompanyQuote = typeof companyQuotes.$inferSelect;
+
+// ─────────────────────────────────────────────────────────────────────────
+// company_analyst_consensus — latest consensus per company, same rationale
+// ─────────────────────────────────────────────────────────────────────────
+export const companyAnalystConsensus = sqliteTable("company_analyst_consensus", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  companyId: integer("company_id").notNull().unique(),
+  sourceId: integer("source_id"),
+  rating: text("rating"), // strong_buy | buy | hold | sell | strong_sell
+  totalRatings: integer("total_ratings"),
+  bullishPct: real("bullish_pct"),
+  neutralPct: real("neutral_pct"),
+  bearishPct: real("bearish_pct"),
+  avgPriceTarget: real("avg_price_target"),
+  medianPriceTarget: real("median_price_target"),
+  highPriceTarget: real("high_price_target"),
+  lowPriceTarget: real("low_price_target"),
+  note: text("note"),
+  asOf: text("as_of").notNull(),
+});
+
+export const insertCompanyAnalystConsensusSchema = createInsertSchema(companyAnalystConsensus).omit({ id: true });
+export type InsertCompanyAnalystConsensus = z.infer<typeof insertCompanyAnalystConsensusSchema>;
+export type CompanyAnalystConsensus = typeof companyAnalystConsensus.$inferSelect;
 
 // ─────────────────────────────────────────────────────────────────────────
 // research_inbox_items
