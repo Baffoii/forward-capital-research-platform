@@ -33,6 +33,7 @@ const NAV_ITEMS = [
   { href: "/digest", label: "This Week", icon: Newspaper, testId: "digest" },
   { href: "/queue", label: "What's Worth an Hour", icon: Timer, testId: "queue" },
   { href: "/watchlist", label: "Watchlist", icon: ListChecks, testId: "watchlist" },
+  { href: "/board", label: "Opportunity Board", icon: Target, testId: "board" },
   { href: "/sources", label: "Source Management", icon: Database, testId: "sources" },
   { href: "/audit", label: "Compliance & Audit Log", icon: ShieldCheck, testId: "audit" },
 ];

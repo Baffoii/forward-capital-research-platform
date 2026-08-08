@@ -23,6 +23,7 @@ import Precommitments from "@/pages/precommitments";
 import DigestPage from "@/pages/digest";
 import Briefing from "@/pages/briefing";
 import ResearchQueue from "@/pages/research-queue";
+import OpportunityBoard from "@/pages/opportunity-board";
 
 function AppRouter() {
   return (
@@ -37,6 +38,7 @@ function AppRouter() {
       <Route path="/inbox" component={ResearchInbox} />
       <Route path="/watchlist" component={Watchlist} />
       <Route path="/sources" component={SourceManagement} />
+      <Route path="/board" component={OpportunityBoard} />
       <Route path="/audit" component={AuditLogPage} />
       {/* Short route on purpose — this gets typed on a phone between classes,
           and it opens straight into the textarea with nothing in the way. */}
