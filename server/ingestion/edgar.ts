@@ -18,7 +18,7 @@ async function rateLimit() {
   lastRequestTimestamps.push(Date.now());
 }
 
-async function secFetch(url: string): Promise<Response> {
+export async function secFetch(url: string): Promise<Response> {
   await rateLimit();
   return fetch(url, {
     headers: {
@@ -63,8 +63,24 @@ export interface EdgarFiling {
   cik: string;
 }
 
-/** GET filing history for a company by ticker. */
-export async function fetchFilingHistory(ticker: string, limit = 10): Promise<EdgarFiling[]> {
+/**
+ * GET filing history for a company by ticker.
+ *
+ * `forms` filters BEFORE applying `limit`, and that ordering matters more than
+ * it looks. The submissions feed is every filing in date order, and Form 4
+ * insider reports dominate it — Vertiv's 200 most recent filings are 117 Form
+ * 4s and exactly one 10-K. Slicing first and filtering afterwards returns zero
+ * annual reports for most issuers and looks indistinguishable from a company
+ * that simply has not filed.
+ *
+ * Omitting `forms` keeps the original behaviour: the newest `limit` filings of
+ * any type.
+ */
+export async function fetchFilingHistory(
+  ticker: string,
+  limit = 10,
+  forms?: string[],
+): Promise<EdgarFiling[]> {
   const cik = await resolveCik(ticker);
   if (!cik) return [];
   const res = await secFetch(`https://data.sec.gov/submissions/CIK${cik}.json`);
@@ -72,8 +88,10 @@ export async function fetchFilingHistory(ticker: string, limit = 10): Promise<Ed
   const data = await res.json();
   const recent = data.filings?.recent;
   if (!recent) return [];
+  const wanted = forms ? new Set(forms.map((f) => f.toUpperCase())) : null;
   const out: EdgarFiling[] = [];
-  for (let i = 0; i < Math.min(limit, recent.form.length); i++) {
+  for (let i = 0; i < recent.form.length && out.length < limit; i++) {
+    if (wanted && !wanted.has(String(recent.form[i]).toUpperCase())) continue;
     out.push({
       form: recent.form[i],
       filingDate: recent.filingDate[i],

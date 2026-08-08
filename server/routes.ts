@@ -26,6 +26,7 @@ import {
   createAnalystSignal,
 } from "./ingestion/connectors";
 import { syncEdgarFilings } from "./ingestion/edgar";
+import { listOpportunityScores, listConstraints } from "./scoring/store";
 import { syncPatents, MissingUsptoKeyError } from "./ingestion/patents";
 
 // Shared secret for the /api/admin/ingest push endpoint. Connector calls (external-tool CLI) don't
@@ -568,6 +569,62 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete("/api/watchlist/:id", async (req, res) => {
     await storage.deleteWatchlistItem(Number(req.params.id));
     res.json({ ok: true });
+  });
+
+  // ── Opportunity board (read-only) ────────────────────────────────────
+  // Returns the most recent scoring run, or the run at ?asOf=YYYY-MM-DD.
+  // Scores are append-only, so "latest" means max(as_of), never an update.
+  app.get("/api/opportunity-scores", async (req, res, next) => {
+    try {
+      const asOfParam = typeof req.query.asOf === "string" ? req.query.asOf : null;
+      const [allScores, constraints, companies] = await Promise.all([
+        listOpportunityScores(),
+        listConstraints(),
+        storage.listCompanies(),
+      ]);
+
+      if (allScores.length === 0) {
+        return res.json({ asOf: null, runs: [], scores: [] });
+      }
+
+      const runs = Array.from(
+        new Set(allScores.map((s) => s.asOf.toISOString())),
+      ).sort((a, b) => (a < b ? 1 : -1));
+
+      const targetAsOf = asOfParam
+        ? runs.find((r) => r.startsWith(asOfParam)) ?? runs[0]
+        : runs[0];
+
+      const constraintById = new Map(constraints.map((c) => [c.id, c]));
+      const companyById = new Map(companies.map((c) => [c.id, c]));
+
+      const scores = allScores
+        .filter((s) => s.asOf.toISOString() === targetAsOf)
+        .map((s) => {
+          const company = companyById.get(s.companyId);
+          const constraint = s.constraintId ? constraintById.get(s.constraintId) : null;
+          return {
+            id: s.id,
+            companyId: s.companyId,
+            companyName: company?.name ?? `company ${s.companyId}`,
+            ticker: company?.ticker ?? null,
+            constraintSlug: constraint?.slug ?? null,
+            constraintName: constraint?.name ?? null,
+            constraintTier: constraint?.tier ?? null,
+            longScore: s.longScore,
+            shortScore: s.shortScore,
+            confidence: s.confidence,
+            components: s.components,
+            scorerVersion: s.scorerVersion,
+            asOf: s.asOf.toISOString(),
+          };
+        })
+        .sort((a, b) => Math.max(b.longScore, b.shortScore) - Math.max(a.longScore, a.shortScore));
+
+      res.json({ asOf: targetAsOf, runs, scores });
+    } catch (err) {
+      next(err);
+    }
   });
 
   // ── Audit log (read-only) ────────────────────────────────────────────
