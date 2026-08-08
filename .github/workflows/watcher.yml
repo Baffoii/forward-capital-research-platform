@@ -62,6 +62,24 @@ jobs:
             sleep 2
           done
 
+      - name: Daily prices, one company at a time
+        env:
+          BASE: ${{ secrets.APP_BASE_URL }}
+          TOKEN: ${{ secrets.INGEST_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Symbols FMP won't serve on our tier come back as "unavailable"
+          # with a reason rather than an error — that is the expected state
+          # for eight of thirteen companies, not a failure.
+          plan=$(curl -sS -H "x-admin-token: $TOKEN" "$BASE/api/admin/watcher/plan")
+          ids=$(echo "$plan" | grep -o '"companyIds":\[[^]]*\]' | grep -o '[0-9]\+' || true)
+          for id in $ids; do
+            curl -sS -X POST -H "x-admin-token: $TOKEN" \
+              "$BASE/api/admin/prices/company/$id" || echo "price sync $id failed, continuing"
+            echo
+            sleep 2
+          done
+
       - name: Send what's queued
         env:
           BASE: ${{ secrets.APP_BASE_URL }}

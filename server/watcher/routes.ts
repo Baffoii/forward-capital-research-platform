@@ -74,6 +74,21 @@ export function registerWatcherRoutes(app: Express) {
     },
   );
 
+  /**
+   * Daily price sync, one company per call.
+   *
+   * Reports `unavailable` with a reason for symbols FMP won't serve, rather
+   * than treating a permission gap as an absence of movement.
+   */
+  app.post("/api/admin/prices/company/:id", requireAdminToken, async (req, res, next) => {
+    try {
+      const { syncPricesForCompany } = await import("../prices/sync");
+      res.json(await syncPricesForCompany(Number(req.params.id)));
+    } catch (err) {
+      next(err);
+    }
+  });
+
   /** One small batch per call. The cron calls it a few times in a row. */
   app.post("/api/admin/watcher/dispatch", requireAdminToken, async (req, res, next) => {
     try {

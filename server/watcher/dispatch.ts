@@ -110,6 +110,8 @@ export interface DispatchResult {
   failed: number;
   loggedOnly: number;
   emailLive: boolean;
+  /** Which channels actually carried anything this run. */
+  channels: string[];
 }
 
 /**
@@ -120,6 +122,9 @@ export interface DispatchResult {
  * repeatedly rather than asking it to drain the queue in one request.
  */
 export async function dispatchPending(batchSize = 20): Promise<DispatchResult> {
+  const { activeNotifiers } = await import("./notifier");
+  const notifiers = activeNotifiers();
+
   const pending: NotificationRow[] = await listPendingNotifications(batchSize);
   const result: DispatchResult = {
     considered: pending.length,
@@ -127,14 +132,36 @@ export async function dispatchPending(batchSize = 20): Promise<DispatchResult> {
     failed: 0,
     loggedOnly: 0,
     emailLive: emailIsLive(),
+    channels: notifiers.map((n) => n.name),
   };
 
   for (const notification of pending) {
-    const outcome = await sendEmail(
-      notification.recipientEmail,
-      notification.subject,
-      notification.body,
-    );
+    // Try every live channel. A notification is delivered if ANY channel took
+    // it — the point is that the person finds out, not that every route
+    // succeeded. Errors are only recorded when nothing got through.
+    let outcome: SendResult = { delivered: false, skippedBecauseDisabled: true };
+    for (const notifier of notifiers) {
+      const r = await notifier.send({
+        kind: notification.kind,
+        recipientEmail: notification.recipientEmail,
+        subject: notification.subject,
+        body: notification.body,
+      });
+      if (r.delivered) { outcome = { delivered: true, skippedBecauseDisabled: false, error: undefined }; break; }
+      if (!r.skippedBecauseDisabled) {
+        outcome = { delivered: false, skippedBecauseDisabled: false, error: r.error };
+      }
+    }
+
+    // No channel configured at all — log the whole body so the pipeline stays
+    // checkable before anything is switched on.
+    if (!outcome.delivered && outcome.skippedBecauseDisabled) {
+      outcome = await sendEmail(
+        notification.recipientEmail,
+        notification.subject,
+        notification.body,
+      );
+    }
 
     if (outcome.delivered) {
       await markSent(notification.id);
