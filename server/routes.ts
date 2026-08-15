@@ -517,10 +517,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post("/api/inbox", async (req, res) => {
     const parsed = insertResearchInboxItemSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.message });
-    const item = await storage.createInboxItem({
-      ...parsed.data,
-      submittedAt: new Date().toISOString(),
-    });
+    // createInboxItem stamps submittedAt itself, and overrode whatever was
+    // passed here — so this was both redundant and the one thing keeping
+    // `npm run check` red, which meant typecheck couldn't gate CI.
+    const item = await storage.createInboxItem(parsed.data);
     res.json(item);
   });
 

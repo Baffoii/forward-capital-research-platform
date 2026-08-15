@@ -27,10 +27,10 @@ filling them in is worse than leaving them empty.
    feature. See `server/watcher/dispatch.ts`, `server/watcher/notifier.ts`,
    `server/handoffs/structure.ts`.
 
-4. **`npm run check` fails with one error** at `server/routes.ts:522`
-   (`submittedAt` not in `insertResearchInboxItemSchema`). PRE-EXISTING on clean
-   `main`; confirmed by two independent sessions via stash. Worth fixing, but it
-   is not something you broke.
+4. **`npm run check` is clean — keep it that way.** It was red for the life of
+   this repo on a pre-existing error at `server/routes.ts` (a redundant
+   `submittedAt` the storage layer already stamped and overrode). Now fixed, so
+   typecheck can gate CI. If it goes red, that is you.
 
 5. **Confidence is never multiplied into a score.** It is reported alongside.
    A low-confidence high score is a research task; a high-confidence low score
@@ -67,7 +67,7 @@ Drizzle** — Drizzle is schema and type generation only.
 branch          maas/human-loop   (has main merged in; main has screening merged in)
 commits         27 unpushed
 tests           20 files, 556 assertions, all passing
-typecheck       1 error, pre-existing (see STOP #4)
+typecheck       clean, 0 errors
 worktrees       /Users/.../forward-research              [screening]  ← redundant
                 /Users/.../forward-research-human-loop   [maas/human-loop]
 ```
@@ -167,7 +167,7 @@ an explicit `.ts` extension.
 
 ```bash
 npm test                     # 20 files, 556 assertions
-npm run check                # tsc — 1 pre-existing failure, see STOP #4
+npm run check                # tsc — clean, keep it that way
 npm run dev                  # PORT=5001 is in .env; see gotchas
 npm run seed:constraints     # idempotent by slug
 npm run pipeline             # full ingest, SEC rate-limited
@@ -219,10 +219,9 @@ Supabase Google auth restricted to three hardcoded emails in `shared/team.ts`.
 
 **Available to an agent:**
 
-5. Fix the `submittedAt` type error so `npm run check` can gate CI.
-6. Add a commented worked example to `segment-constraint-map.ts` so filling it
+5. Add a commented worked example to `segment-constraint-map.ts` so filling it
    is copy-and-edit. **A commented example only — do not add live entries.**
-7. Optional: pull project-tracker status into the weekly digest, so the digest
+6. Optional: pull project-tracker status into the weekly digest, so the digest
    stays the only thing anyone has to read.
 
 **Deferred by the operator, do not start without asking:**
