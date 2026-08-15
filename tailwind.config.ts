@@ -75,6 +75,9 @@ export default {
           foreground: "hsl(var(--sidebar-accent-foreground) / <alpha-value>)",
           border: "var(--sidebar-accent-border)"
         },
+        // Market direction, used by the Paper Trading tab for gains/losses.
+        up: "hsl(var(--up) / <alpha-value>)",
+        down: "hsl(var(--down) / <alpha-value>)",
         status: {
           online: "rgb(34 197 94)",
           away: "rgb(245 158 11)",

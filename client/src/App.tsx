@@ -12,6 +12,7 @@ import CompanyIntelligence from "@/pages/company-intelligence";
 import SignalFeed from "@/pages/signal-feed";
 import ResearchInbox from "@/pages/research-inbox";
 import Watchlist from "@/pages/watchlist";
+import PaperTrading from "@/pages/paper-trading";
 import SourceManagement from "@/pages/source-management";
 import AuditLogPage from "@/pages/audit-log";
 
@@ -24,6 +25,7 @@ function AppRouter() {
       <Route path="/signals" component={SignalFeed} />
       <Route path="/inbox" component={ResearchInbox} />
       <Route path="/watchlist" component={Watchlist} />
+      <Route path="/paper" component={PaperTrading} />
       <Route path="/sources" component={SourceManagement} />
       <Route path="/audit" component={AuditLogPage} />
       <Route component={NotFound} />
