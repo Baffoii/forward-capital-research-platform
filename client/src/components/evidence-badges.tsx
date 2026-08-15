@@ -1,104 +1,185 @@
-import { Badge } from "@/components/ui/badge";
+// Classification chips and the two shapes a signal is read in: a register row
+// (briefing / feed) and a compact evidence item (for / against panels).
+//
+// Every signal shows its direction, how well it is verified, where it came
+// from, and what it is worth. None of those is ever hidden behind a hover.
+
+import type { ReactNode } from "react";
+import { Chip, directionRailColor, directionTone, scoreToneClass, type Tone } from "@/components/kit";
+import {
+  DIRECTION_LABELS,
+  PROVENANCE_LABELS,
+  TIER_LABELS,
+  TIER_LABELS_SHORT,
+  fmtDayMonthCaps,
+  fmtScore,
+  fmtTime,
+  humanize,
+} from "@/lib/design";
 import { cn } from "@/lib/utils";
 import type { Signal } from "@shared/schema";
 
-const TIER_STYLES: Record<string, string> = {
-  unverified: "bg-muted text-muted-foreground border-border",
-  single_source: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
-  corroborated: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30",
-  primary_source_confirmed: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+const TIER_TONES: Record<string, Tone> = {
+  unverified: "neutral",
+  single_source: "ochre",
+  corroborated: "azure",
+  primary_source_confirmed: "confirming",
 };
 
-const TIER_LABELS: Record<string, string> = {
-  unverified: "Unverified",
-  single_source: "Single source",
-  corroborated: "Corroborated",
-  primary_source_confirmed: "Primary source confirmed",
+const PROVENANCE_TONES: Record<string, Tone> = {
+  ai_generated_interpretation: "iris",
+  investment_hypothesis: "iris",
 };
 
-export function VerificationTierBadge({ tier }: { tier: string }) {
+export function DirectionBadge({ direction, suffix }: { direction: string; suffix?: string }) {
   return (
-    <Badge
-      variant="outline"
-      className={cn("font-mono text-[10px] uppercase tracking-wide", TIER_STYLES[tier] ?? TIER_STYLES.unverified)}
-      data-testid={`badge-verification-tier-${tier}`}
-    >
-      {TIER_LABELS[tier] ?? tier}
-    </Badge>
+    <Chip tone={directionTone(direction)} size="lead" testId={`badge-direction-${direction}`}>
+      {DIRECTION_LABELS[direction] ?? direction}
+      {suffix ? ` ${suffix}` : ""}
+    </Chip>
   );
 }
 
-const PROVENANCE_LABELS: Record<string, string> = {
-  raw_data: "Raw data",
-  detected_signal: "Detected signal",
-  ai_generated_interpretation: "AI-generated",
-  human_authored_research: "Human research",
-  investment_hypothesis: "Investment hypothesis",
-  confirmed_event: "Confirmed event",
-  unverified_rumor_or_social_claim: "Unverified rumor/social",
-};
+export function VerificationTierBadge({ tier, short = false }: { tier: string; short?: boolean }) {
+  const labels = short ? TIER_LABELS_SHORT : TIER_LABELS;
+  return (
+    <Chip tone={TIER_TONES[tier] ?? "neutral"} testId={`badge-verification-tier-${tier}`}>
+      {labels[tier] ?? humanize(tier)}
+    </Chip>
+  );
+}
 
 export function ProvenanceBadge({ provenanceClass }: { provenanceClass: string }) {
-  const isAi = provenanceClass === "ai_generated_interpretation";
   return (
-    <Badge
-      variant="secondary"
-      className={cn("text-[10px]", isAi && "bg-violet-500/10 text-violet-600 dark:text-violet-400")}
-      data-testid={`badge-provenance-${provenanceClass}`}
-    >
-      {PROVENANCE_LABELS[provenanceClass] ?? provenanceClass}
-    </Badge>
+    <Chip tone={PROVENANCE_TONES[provenanceClass] ?? "neutral"} testId={`badge-provenance-${provenanceClass}`}>
+      {PROVENANCE_LABELS[provenanceClass] ?? humanize(provenanceClass)}
+    </Chip>
   );
 }
 
-const DIRECTION_STYLES: Record<string, string> = {
-  confirming: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-  contradicting: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30",
-  neutral: "bg-muted text-muted-foreground border-border",
-};
-
-export function DirectionBadge({ direction }: { direction: string }) {
+export function CategoryBadge({ category }: { category: string }) {
   return (
-    <Badge
-      variant="outline"
-      className={cn("text-[10px] capitalize", DIRECTION_STYLES[direction] ?? DIRECTION_STYLES.neutral)}
-      data-testid={`badge-direction-${direction}`}
-    >
-      {direction}
-    </Badge>
+    <Chip mono testId={`badge-category-${category}`}>
+      {category}
+    </Chip>
   );
 }
 
-export function SignalCard({ signal, score }: { signal: Signal; score?: number }) {
+/** The standard classification run: direction, tier, provenance, category. */
+export function SignalChips({
+  signal,
+  short = false,
+  showProvenance = true,
+  showCategory = true,
+  className,
+}: {
+  signal: Signal;
+  short?: boolean;
+  showProvenance?: boolean;
+  showCategory?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
+      <DirectionBadge direction={signal.direction} />
+      <VerificationTierBadge tier={signal.verificationTier} short={short} />
+      {showProvenance && <ProvenanceBadge provenanceClass={signal.provenanceClass} />}
+      {showCategory && <CategoryBadge category={signal.signalCategory} />}
+    </div>
+  );
+}
+
+/**
+ * A dated register row. The rail on the left carries the direction, so the
+ * shape of a week is legible before any text is read.
+ */
+export function SignalRow({
+  signal,
+  score,
+  ticker,
+  showTime = true,
+  last = false,
+  scoreCaption,
+}: {
+  signal: Signal;
+  score?: number;
+  ticker?: ReactNode;
+  showTime?: boolean;
+  last?: boolean;
+  scoreCaption?: string;
+}) {
+  const unscored = score == null || Math.abs(score) < 0.005;
+  const caption = scoreCaption ?? (unscored ? "unscored" : "score impact");
+
   return (
     <div
-      className="rounded-md border border-border bg-card p-3 space-y-2"
-      data-testid={`card-signal-${signal.id}`}
+      className={cn("flex gap-3.5 px-5 py-4", !last && "border-b border-fc-rule-soft")}
+      data-testid={`row-signal-${signal.id}`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-medium leading-snug" data-testid={`text-signal-title-${signal.id}`}>
-          {signal.title}
-        </p>
-        {score !== undefined && (
-          <span className="shrink-0 font-mono text-xs text-muted-foreground" data-testid={`text-signal-score-${signal.id}`}>
-            {score >= 0 ? "+" : ""}
-            {score.toFixed(2)}
-          </span>
+      <div className="w-11 shrink-0 text-right text-[11px] font-medium leading-[1.45] text-fc-ink-3">
+        {fmtDayMonthCaps(signal.retrievedAt)}
+        {showTime && (
+          <>
+            <br />
+            {fmtTime(signal.retrievedAt)}
+          </>
         )}
       </div>
-      <p className="text-xs text-muted-foreground leading-relaxed">{signal.description}</p>
-      <div className="flex flex-wrap items-center gap-1.5 pt-1">
-        <VerificationTierBadge tier={signal.verificationTier} />
-        <ProvenanceBadge provenanceClass={signal.provenanceClass} />
-        <DirectionBadge direction={signal.direction} />
-        <Badge variant="outline" className="text-[10px] font-mono">
-          {signal.signalCategory}
-        </Badge>
+      <div
+        className="w-[3px] shrink-0 rounded-sm"
+        style={{ background: directionRailColor(signal.direction) }}
+        aria-hidden="true"
+      />
+      <div className="min-w-0 flex-1">
+        <div className="mb-1.5 flex flex-wrap items-baseline gap-2">
+          {ticker && <span className="font-mono text-[12.5px] font-semibold text-fc-ink">{ticker}</span>}
+          <span
+            className="font-display text-[13px] font-semibold leading-[1.35] text-fc-ink"
+            data-testid={`text-signal-title-${signal.id}`}
+          >
+            {signal.title}
+          </span>
+        </div>
+        <p className="text-[12.5px] leading-[1.6] text-fc-ink-3">{signal.description}</p>
+        <SignalChips signal={signal} short className="mt-2.5" />
       </div>
-      <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground/70">
-        <span>{new Date(signal.retrievedAt).toLocaleDateString()}</span>
-        <span className="font-mono">{signal.ingestionMethod}</span>
+      <div className="shrink-0 text-right">
+        <div
+          className={cn("font-mono text-sm font-semibold leading-none", scoreToneClass(score))}
+          data-testid={`text-signal-score-${signal.id}`}
+        >
+          {fmtScore(score ?? 0)}
+        </div>
+        <div className="mt-1 text-[10px] leading-tight text-fc-ink-3">{caption}</div>
       </div>
+    </div>
+  );
+}
+
+/** Compact "title — score / one line of why" item for the evidence panels. */
+export function EvidenceItem({
+  signal,
+  score,
+  tone = "plain",
+  last = false,
+}: {
+  signal: Signal;
+  score: number;
+  tone?: "plain" | "alert";
+  last?: boolean;
+}) {
+  return (
+    <div
+      className={cn("px-5 py-4", !last && (tone === "alert" ? "border-b border-fc-oxide-panel-line" : "border-b border-fc-rule-soft"))}
+      data-testid={`item-evidence-${signal.id}`}
+    >
+      <div className="mb-1.5 flex items-baseline justify-between gap-3">
+        <span className="font-display text-[12.5px] font-semibold leading-[1.35] text-fc-ink">{signal.title}</span>
+        <span className={cn("shrink-0 font-mono text-[12.5px] font-semibold leading-none", scoreToneClass(score))}>
+          {fmtScore(score)}
+        </span>
+      </div>
+      <p className="text-xs leading-[1.6] text-fc-ink-3">{signal.description}</p>
     </div>
   );
 }

@@ -64,8 +64,29 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     }
   });
 
-  app.get("/api/segments", async (_req, res) => {
-    res.json({ thesisTitle: THESIS_TITLE, segments: CANONICAL_SEGMENTS });
+  // Segments are thesis legs, so they live in thesis_segments. The seed
+  // constants remain the fallback for a database that predates that table.
+  app.get("/api/segments", async (_req, res, next) => {
+    try {
+      const [thesis] = await storage.listTheses();
+      if (!thesis) return res.json({ thesisTitle: THESIS_TITLE, segments: CANONICAL_SEGMENTS });
+
+      const rows = await storage.listThesisSegments(thesis.id);
+      if (rows.length === 0) return res.json({ thesisTitle: thesis.title, segments: CANONICAL_SEGMENTS });
+
+      const companies = await storage.listCompanies();
+      res.json({
+        thesisTitle: thesis.title,
+        segments: rows.map((seg) => ({
+          name: seg.name,
+          note: seg.note,
+          isThesisLeg: seg.isThesisLeg,
+          tickers: companies.filter((c) => c.segment === seg.name).map((c) => c.ticker).filter(Boolean),
+        })),
+      });
+    } catch (err) {
+      next(err);
+    }
   });
 
   // ── Companies ─────────────────────────────────────────────────────────
@@ -219,6 +240,13 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       const { confidence, normalizingFactor, sum } = computeThesisConfidence(scored.map((s) => s.score));
       const gauge = confidenceToGauge(confidence);
       await storage.updateThesisConfidence(thesis.id, confidence);
+      await storage.createConfidenceHistory({
+        thesisId: thesis.id,
+        confidence,
+        gauge,
+        signalCount: normalizingFactor,
+        computedAt: now.toISOString(),
+      });
       await storage.createAuditLog({
         eventType: "ingestion",
         description: `DIAG: thesis ${thesis.id} updateThesisConfidence ok, confidence=${confidence}`,
@@ -311,6 +339,13 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       const { confidence, normalizingFactor, sum } = computeThesisConfidence(scored.map((s) => s.score));
       const gauge = confidenceToGauge(confidence);
       await storage.updateThesisConfidence(thesis.id, confidence);
+      await storage.createConfidenceHistory({
+        thesisId: thesis.id,
+        confidence,
+        gauge,
+        signalCount: normalizingFactor,
+        computedAt: now.toISOString(),
+      });
       thesisResults.push({ thesisId: thesis.id, confidence, gauge, normalizingFactor, sum });
     }
     res.json({ theses: thesisResults });
@@ -346,6 +381,41 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     res.json(await storage.createAssumption(parsed.data));
   });
 
+  app.get("/api/theses/:id/falsifiers", async (req, res, next) => {
+    try {
+      res.json(await storage.listFalsifiers(Number(req.params.id)));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get("/api/theses/:id/segments", async (req, res, next) => {
+    try {
+      res.json(await storage.listThesisSegments(Number(req.params.id)));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get("/api/theses/:id/milestones", async (req, res, next) => {
+    try {
+      res.json(await storage.listMilestones(Number(req.params.id)));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Oldest-first, so the trend line reads left to right.
+  app.get("/api/theses/:id/confidence-history", async (req, res, next) => {
+    try {
+      const limit = Number(req.query.limit) || 52;
+      const rows = await storage.listConfidenceHistory(Number(req.params.id), limit);
+      res.json([...rows].sort((a, b) => new Date(a.computedAt).getTime() - new Date(b.computedAt).getTime()));
+    } catch (err) {
+      next(err);
+    }
+  });
+
   app.get("/api/theses/:id/companies", async (req, res) => {
     res.json(await storage.listThesisCompanies(Number(req.params.id)));
   });
@@ -375,6 +445,16 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     const gauge = confidenceToGauge(confidence);
     const updated = await storage.updateThesisConfidence(thesisId, confidence);
 
+    // Every recompute leaves a row behind, so the trend line on the briefing is
+    // a record of what the score actually read rather than a reconstruction.
+    await storage.createConfidenceHistory({
+      thesisId,
+      confidence,
+      gauge,
+      signalCount: normalizingFactor,
+      computedAt: now.toISOString(),
+    });
+
     await storage.createAuditLog({
       eventType: "score_computed",
       description: `Recomputed confidence for thesis "${thesis.title}": confidence=${confidence.toFixed(3)} gauge=${gauge} over ${normalizingFactor} signals (sum=${sum.toFixed(3)}).`,
@@ -400,6 +480,38 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     const neutral = withScores.filter((s) => s.direction === "neutral").sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
 
     res.json({ confirming, contradicting, neutral });
+  });
+
+  // ── Market snapshots ──────────────────────────────────────────────────
+  // Denormalised out of signals.raw_payload at ingest time so the watchlist
+  // reads prices and consensus straight from Postgres.
+  app.get("/api/quotes", async (_req, res, next) => {
+    try {
+      res.json(await storage.listCompanyQuotes());
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get("/api/consensus", async (_req, res, next) => {
+    try {
+      res.json(await storage.listCompanyConsensus());
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get("/api/companies/:id/market", async (req, res, next) => {
+    try {
+      const companyId = Number(req.params.id);
+      const [quote, consensus] = await Promise.all([
+        storage.getCompanyQuote(companyId),
+        storage.getCompanyConsensus(companyId),
+      ]);
+      res.json({ quote: quote ?? null, consensus: consensus ?? null });
+    } catch (err) {
+      next(err);
+    }
   });
 
   // ── Sources ───────────────────────────────────────────────────────────
@@ -481,10 +593,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post("/api/inbox", async (req, res) => {
     const parsed = insertResearchInboxItemSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.message });
-    const item = await storage.createInboxItem({
-      ...parsed.data,
-      submittedAt: new Date().toISOString(),
-    });
+    // createInboxItem stamps submittedAt itself — passing it here as well is
+    // both redundant and outside the insert schema.
+    const item = await storage.createInboxItem(parsed.data);
     res.json(item);
   });
 

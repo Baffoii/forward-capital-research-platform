@@ -1,82 +1,197 @@
+// Compliance & Audit — the guardrails written down as a standing statement,
+// above the ordered record of everything the system ingested and scored.
+// Read-only by construction: nothing on this page mutates anything.
+
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { ShieldCheck } from "lucide-react";
+import {
+  ActionButton,
+  Chip,
+  FilterPill,
+  LoadingBlock,
+  PageBody,
+  PageHeader,
+  Panel,
+  PanelHead,
+  PanelTitle,
+  SectionLabel,
+  type Tone,
+} from "@/components/kit";
+import { EVENT_LABELS, fmtStampUtc, humanize } from "@/lib/design";
+import { cn } from "@/lib/utils";
 import type { AuditLog } from "@shared/schema";
 
-const EVENT_LABELS: Record<string, string> = {
-  ingestion: "Ingestion",
-  score_computed: "Score computed",
-  signal_created: "Signal created",
-  signal_promoted: "Signal promoted",
-  source_synced: "Source synced",
+const ROW_GRID = "md:grid-cols-[150px_minmax(0,1fr)_170px]";
+
+const EVENT_TONES: Record<string, Tone> = {
+  score_computed: "iris",
+  ingestion: "azure",
+  source_synced: "confirming",
+  signal_promoted: "ochre",
+  signal_created: "neutral",
 };
 
-const COMPLIANCE_NOTES = [
-  "No material non-public information (MNPI) is knowingly collected, stored, or displayed.",
-  "No automated trade execution, order entry, or broker connections exist anywhere in this application.",
-  "No self-botting: the Research Inbox is a manual, human-entry-only capture page — never an automated scraper of any chat platform.",
-  "Source attribution is preserved on every signal: source_id, source_url (when available), retrieved_at, and ingestion_method are all stored.",
-  "Third-party terms of service are respected — only free/already-connected, no-per-call-confirmation sources are wired into live ingestion.",
+const FILTERS: Array<{ key: string; label: string; events: string[] }> = [
+  { key: "all", label: "All", events: [] },
+  { key: "ingestion", label: "Ingestion", events: ["ingestion", "source_synced"] },
+  { key: "scoring", label: "Scoring", events: ["score_computed"] },
+  { key: "promotion", label: "Promotion", events: ["signal_promoted", "signal_created"] },
 ];
 
+// The sixth is inked oxide: it is the one the interface itself enforces.
+const GUARANTEES: Array<{ title: string; detail: string; critical?: boolean }> = [
+  {
+    title: "No material non-public information",
+    detail: "MNPI is never knowingly collected, stored, or displayed anywhere in this application.",
+  },
+  {
+    title: "No trade execution path exists",
+    detail: "No order entry, no broker connection, no export to one. Not disabled — absent from the codebase.",
+  },
+  {
+    title: "No self-botting",
+    detail: "The Research Inbox is human-entry only, never an automated scraper of any chat platform or service.",
+  },
+  {
+    title: "Provenance is preserved per signal",
+    detail: "source_id, source_url, retrieved_at and ingestion_method are stored on every record without exception.",
+  },
+  {
+    title: "Third-party terms respected",
+    detail: "Only free or already-connected sources with no per-call confirmation are wired into live ingestion.",
+  },
+  {
+    title: "Counter-evidence cannot be dismissed",
+    detail:
+      "The evidence-against panel has no close, collapse, or filter affordance. This is enforced in the component, not in policy.",
+    critical: true,
+  },
+];
+
+function toCsv(rows: AuditLog[]): string {
+  const escape = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const header = ["id", "event_type", "description", "source_id", "created_at_utc"];
+  const body = rows.map((r) => [r.id, r.eventType, r.description, r.sourceId ?? "", r.createdAt].map(escape).join(","));
+  return [header.join(","), ...body].join("\n");
+}
+
 export default function AuditLogPage() {
+  const [filter, setFilter] = useState("all");
   const { data: logs, isLoading } = useQuery<AuditLog[]>({ queryKey: ["/api/audit"] });
+
+  const active = FILTERS.find((f) => f.key === filter) ?? FILTERS[0];
+  const visible = useMemo(
+    () => (active.events.length === 0 ? logs ?? [] : (logs ?? []).filter((l) => active.events.includes(l.eventType))),
+    [logs, active]
+  );
+
+  const exportCsv = () => {
+    const blob = new Blob([toCsv(visible)], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `forward-capital-audit-trail-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <h1 className="text-xl font-semibold" data-testid="text-page-title">Compliance & Audit Log</h1>
-          <p className="text-sm text-muted-foreground">Read-only feed of ingestion and scoring events.</p>
-        </div>
+      <PageHeader
+        title="Compliance & Audit"
+        subtitle="Read-only. Every ingestion and scoring event, in order."
+        actions={
+          <ActionButton onClick={exportCsv} disabled={!visible.length} testId="button-export-audit">
+            Export trail (CSV)
+          </ActionButton>
+        }
+      />
 
-        <Card data-testid="card-compliance-notes">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <ShieldCheck className="h-4 w-4 text-primary" />
-              Compliance notes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {COMPLIANCE_NOTES.map((note, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground" data-testid={`text-compliance-note-${i}`}>
-                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
-                  {note}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card data-testid="card-audit-feed">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Audit trail</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-40 w-full" />
-            ) : logs && logs.length > 0 ? (
-              <div className="space-y-2">
-                {logs.map((log) => (
-                  <div key={log.id} className="flex items-start justify-between gap-3 rounded-md border border-border p-3" data-testid={`row-audit-${log.id}`}>
-                    <div>
-                      <Badge variant="outline" className="mb-1 text-[10px]">{EVENT_LABELS[log.eventType] ?? log.eventType}</Badge>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{log.description}</p>
-                    </div>
-                    <span className="shrink-0 font-mono text-[11px] text-muted-foreground/70">{new Date(log.createdAt).toLocaleString()}</span>
-                  </div>
-                ))}
+      <PageBody>
+        <Panel tone="teal" className="px-7 py-6" testId="card-compliance-notes">
+          <SectionLabel className="mb-4 text-fc-teal">Standing guarantees</SectionLabel>
+          <div className="grid gap-x-8 gap-y-[18px] md:grid-cols-2">
+            {GUARANTEES.map((g, i) => (
+              <div key={g.title} className="flex gap-3" data-testid={`text-compliance-note-${i}`}>
+                <span
+                  className={cn(
+                    "shrink-0 font-mono text-[11px] font-semibold leading-[1.6]",
+                    g.critical ? "text-fc-oxide" : "text-fc-teal"
+                  )}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <div className="mb-1 text-[13px] font-medium leading-snug text-fc-ink">{g.title}</div>
+                  <p className="text-pretty text-xs leading-[1.6] text-fc-ink-2">{g.detail}</p>
+                </div>
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground" data-testid="text-no-audit-logs">No audit events yet.</p>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel flush testId="card-audit-feed">
+          <PanelHead>
+            <PanelTitle>Audit trail</PanelTitle>
+            <div className="ml-auto flex flex-wrap gap-1.5">
+              {FILTERS.map((f) => (
+                <FilterPill
+                  key={f.key}
+                  active={filter === f.key}
+                  onClick={() => setFilter(f.key)}
+                  testId={`filter-audit-${f.key}`}
+                >
+                  {f.label}
+                </FilterPill>
+              ))}
+            </div>
+          </PanelHead>
+
+          <div
+            className={cn(
+              "hidden border-b border-fc-rule-soft bg-fc-surface-sunk px-[22px] py-2.5 text-[9.5px] font-semibold uppercase leading-none tracking-[0.1em] text-fc-ink-3 md:grid",
+              ROW_GRID
             )}
-          </CardContent>
-        </Card>
-      </div>
+          >
+            <span>Event</span>
+            <span>Description</span>
+            <span className="text-right">Timestamp (UTC)</span>
+          </div>
+
+          {isLoading ? (
+            <div className="p-5">
+              <LoadingBlock height={200} className="border-0" />
+            </div>
+          ) : visible.length === 0 ? (
+            <p className="px-[22px] py-6 text-[13px] text-fc-ink-3" data-testid="text-no-audit-logs">
+              No audit events recorded for this filter.
+            </p>
+          ) : (
+            visible.map((log, i) => (
+              <div
+                key={log.id}
+                className={cn(
+                  "grid grid-cols-1 items-center gap-2 px-[22px] py-3.5 md:gap-0",
+                  ROW_GRID,
+                  i < visible.length - 1 && "border-b border-fc-rule-soft"
+                )}
+                data-testid={`row-audit-${log.id}`}
+              >
+                <span className="justify-self-start">
+                  <Chip tone={EVENT_TONES[log.eventType] ?? "neutral"} size="lead">
+                    {EVENT_LABELS[log.eventType] ?? humanize(log.eventType)}
+                  </Chip>
+                </span>
+                <span className="pr-5 text-[12.5px] leading-[1.5] text-fc-ink-2">{log.description}</span>
+                <span className="font-mono text-[11.5px] font-medium leading-none text-fc-ink-3 md:text-right">
+                  {fmtStampUtc(log.createdAt)}
+                </span>
+              </div>
+            ))
+          )}
+        </Panel>
+      </PageBody>
     </AppLayout>
   );
 }
