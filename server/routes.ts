@@ -27,6 +27,12 @@ import {
 } from "./ingestion/connectors";
 import { syncEdgarFilings } from "./ingestion/edgar";
 import { syncPatents, MissingUsptoKeyError } from "./ingestion/patents";
+import { runResearchBot } from "./research-bot";
+import { THESIS_RESEARCH_CANDIDATES } from "@shared/research-bot";
+
+const RESEARCH_BOT_COOLDOWN_MS = 5 * 60 * 1000;
+const researchBotLastRun = new Map<string, number>();
+const researchBotActiveRuns = new Set<string>();
 
 // Shared secret for the /api/admin/ingest push endpoint. Connector calls (external-tool CLI) don't
 // work inside a published site's production sandbox, so a scheduled task running outside the site
@@ -344,6 +350,49 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get("/api/theses/:id/companies", async (req, res) => {
     res.json(await storage.listThesisCompanies(Number(req.params.id)));
+  });
+
+  // A qualitative challenge to the thesis. Four specialist agents search
+  // independently, then a fifth pass adjudicates their sourced findings.
+  // Results are not persisted into the quantitative signal ledger.
+  app.post("/api/theses/:id/research-bot", async (req, res, next) => {
+    const thesisId = Number(req.params.id);
+    const runKey = `${req.ip || "unknown"}:${thesisId}`;
+    try {
+      const lastRun = researchBotLastRun.get(runKey) ?? 0;
+      if (researchBotActiveRuns.has(runKey)) {
+        return res.status(429).json({ error: "A research run is already active for this thesis" });
+      }
+      if (Date.now() - lastRun < RESEARCH_BOT_COOLDOWN_MS) {
+        const retryAfterSeconds = Math.ceil((RESEARCH_BOT_COOLDOWN_MS - (Date.now() - lastRun)) / 1000);
+        res.setHeader("Retry-After", String(retryAfterSeconds));
+        return res.status(429).json({ error: `Research bot cooldown active; retry in ${retryAfterSeconds} seconds` });
+      }
+
+      const thesis = await storage.getThesis(thesisId);
+      if (!thesis) return res.status(404).json({ error: "Thesis not found" });
+      const parsed = z.object({ focusTicker: z.string().trim().max(10).optional() }).safeParse(req.body ?? {});
+      if (!parsed.success) return res.status(400).json({ error: parsed.error.message });
+      const [assumptions, companies, signals] = await Promise.all([
+        storage.listAssumptions(thesisId), storage.listCompanies(), storage.listSignals({ thesisId }),
+      ]);
+      const focusTicker = parsed.data.focusTicker?.toUpperCase();
+      if (
+        focusTicker &&
+        !companies.some((company) => company.ticker?.toUpperCase() === focusTicker) &&
+        !THESIS_RESEARCH_CANDIDATES.some((candidate) => candidate.ticker === focusTicker)
+      ) {
+        return res.status(400).json({ error: `Unknown focus ticker: ${focusTicker}` });
+      }
+
+      researchBotActiveRuns.add(runKey);
+      researchBotLastRun.set(runKey, Date.now());
+      res.json(await runResearchBot({ thesis, assumptions, companies, signals, focusTicker }));
+    } catch (err) {
+      next(err);
+    } finally {
+      researchBotActiveRuns.delete(runKey);
+    }
   });
 
   app.post("/api/theses/:id/companies", async (req, res) => {

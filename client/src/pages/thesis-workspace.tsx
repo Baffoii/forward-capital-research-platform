@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { confidenceToGauge } from "@/lib/scoring-client";
 import { AlertOctagon, RefreshCw, ShieldAlert } from "lucide-react";
 import type { Thesis, ThesisAssumption, Signal } from "@shared/schema";
+import { ResearchBotPanel } from "@/components/research-bot-panel";
 
 interface EvidenceResponse {
   confirming: (Signal & { score: number })[];
@@ -125,6 +126,8 @@ export default function ThesisWorkspace() {
                 </div>
               </CardContent>
             </Card>
+
+            <ResearchBotPanel thesis={thesis} />
 
             <Card data-testid="card-confidence-math">
               <CardHeader className="pb-2">

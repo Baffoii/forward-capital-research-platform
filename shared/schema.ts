@@ -156,7 +156,9 @@ export const insertResearchInboxItemSchema = createInsertSchema(researchInboxIte
   promotedSignalId: true,
   submittedAt: true,
 });
-export type InsertResearchInboxItem = z.infer<typeof insertResearchInboxItemSchema>;
+// The public create payload omits submittedAt; the server stamps it before
+// persistence, so the storage insert type includes the generated timestamp.
+export type InsertResearchInboxItem = z.infer<typeof insertResearchInboxItemSchema> & { submittedAt: string };
 export type ResearchInboxItem = typeof researchInboxItems.$inferSelect;
 
 // ─────────────────────────────────────────────────────────────────────────
