@@ -9,6 +9,7 @@ import {
   ListChecks,
   Database,
   ShieldCheck,
+  CandlestickChart,
   Menu,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { href: "/signals", label: "Signal Feed", icon: Rss, testId: "signals" },
   { href: "/inbox", label: "Research Inbox", icon: Inbox, testId: "inbox" },
   { href: "/watchlist", label: "Watchlist", icon: ListChecks, testId: "watchlist" },
+  { href: "/paper", label: "Paper Trading", icon: CandlestickChart, testId: "paper" },
   { href: "/sources", label: "Source Management", icon: Database, testId: "sources" },
   { href: "/audit", label: "Compliance & Audit Log", icon: ShieldCheck, testId: "audit" },
 ];

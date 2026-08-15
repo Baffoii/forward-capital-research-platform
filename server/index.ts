@@ -120,7 +120,9 @@ app.use((req, res, next) => {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
+      // SO_REUSEPORT is what lets the deployed (Linux) process rebind without a drain window, but
+      // libuv rejects it on macOS with ENOTSUP — which kills the process on a local dev machine.
+      ...(process.platform === "linux" ? { reusePort: true } : {}),
     },
     () => {
       log(`serving on port ${port}`);

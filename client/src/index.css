@@ -43,6 +43,9 @@
   --chart-3: 38 80% 50%;
   --chart-4: 6 65% 52%;
   --chart-5: 262 45% 55%;
+  /* Market direction — green up / red down, as every exchange screen renders it. */
+  --up: 152 62% 32%;
+  --down: 6 72% 46%;
   --font-sans: 'General Sans', 'Geist', system-ui, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'JetBrains Mono', 'Geist Mono', Menlo, monospace;
@@ -141,6 +144,8 @@
   --chart-3: 38 80% 58%;
   --chart-4: 6 65% 60%;
   --chart-5: 262 55% 68%;
+  --up: 152 58% 48%;
+  --down: 6 78% 60%;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
   --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);

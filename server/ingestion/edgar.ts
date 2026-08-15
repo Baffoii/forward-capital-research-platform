@@ -18,7 +18,7 @@ async function rateLimit() {
   lastRequestTimestamps.push(Date.now());
 }
 
-async function secFetch(url: string): Promise<Response> {
+export async function secFetch(url: string): Promise<Response> {
   await rateLimit();
   return fetch(url, {
     headers: {
@@ -31,7 +31,7 @@ async function secFetch(url: string): Promise<Response> {
 let tickerCikMapCache: Record<string, string> | null = null;
 
 /** Fetch (once, cached in-memory) the static ticker -> CIK mapping file. */
-async function loadTickerCikMap(): Promise<Record<string, string>> {
+export async function loadTickerCikMap(): Promise<Record<string, string>> {
   if (tickerCikMapCache) return tickerCikMapCache;
   const res = await secFetch("https://www.sec.gov/files/company_tickers.json");
   if (!res.ok) throw new Error(`SEC company_tickers.json fetch failed: ${res.status}`);
