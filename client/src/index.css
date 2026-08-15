@@ -110,6 +110,11 @@
   --chart-3: 199 89% 48%;
   --chart-4: 40 85% 39%;
   --chart-5: 258 42% 52%;
+  /* Market direction — green up / red down, as every exchange screen renders
+     it. Kept distinct from the evidence pair above: forest/oxide mean
+     "confirms / contradicts the thesis", these mean "the price moved". */
+  --up: 152 62% 32%;
+  --down: 6 72% 46%;
   --font-sans: 'Public Sans', system-ui, -apple-system, sans-serif;
   --font-display: 'Libre Franklin', 'Public Sans', system-ui, sans-serif;
   --font-serif: Georgia, serif;
@@ -261,6 +266,8 @@
   --chart-3: 199 71% 55%;
   --chart-4: 40 68% 54%;
   --chart-5: 258 55% 73%;
+  --up: 152 58% 48%;
+  --down: 6 78% 60%;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
   --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);

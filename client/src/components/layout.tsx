@@ -7,9 +7,9 @@ import { SectionLabel } from "@/components/kit";
 import { cn } from "@/lib/utils";
 import type { ResearchInboxItem, Signal, WatchlistItem } from "@shared/schema";
 
-// The nav is numbered and split into the two things this app does: hold a
-// thesis to account, and take evidence in. Order is the reading order of the
-// briefing — verdict first, provenance last.
+// The nav is numbered and grouped by what each section is for: holding the
+// thesis to account, taking evidence in, and the market-side tools. Order is
+// the reading order of the briefing — verdict first, provenance last.
 const NAV_GROUPS: Array<{
   label: string;
   items: Array<{ href: string; label: string; testId: string; count?: "signals" | "watchlist" | "inbox" }>;
@@ -30,6 +30,10 @@ const NAV_GROUPS: Array<{
       { href: "/sources", label: "Sources", testId: "sources" },
       { href: "/audit", label: "Compliance & Audit", testId: "audit" },
     ],
+  },
+  {
+    label: "Markets",
+    items: [{ href: "/paper", label: "Paper Trading", testId: "paper" }],
   },
 ];
 

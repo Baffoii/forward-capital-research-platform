@@ -27,6 +27,7 @@ import {
 } from "./ingestion/connectors";
 import { syncEdgarFilings } from "./ingestion/edgar";
 import { syncPatents, MissingUsptoKeyError } from "./ingestion/patents";
+import { registerPaperTradingRoutes } from "./routes-paper";
 
 // Shared secret for the /api/admin/ingest push endpoint. Connector calls (external-tool CLI) don't
 // work inside a published site's production sandbox, so a scheduled task running outside the site
@@ -50,6 +51,9 @@ function requireAdminToken(req: Request, res: Response, next: NextFunction) {
 }
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
+  // ── Paper Trading (Alpaca-backed) ─────────────────────────────────────
+  registerPaperTradingRoutes(app);
+
   // ── Admin / seed ──────────────────────────────────────────────────────
   app.post("/api/admin/seed", requireAdminToken, async (_req, res, next) => {
     try {
